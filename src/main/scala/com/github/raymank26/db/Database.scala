@@ -9,6 +9,7 @@ object Database {
 
     def getUser: Option[User] = {
         val connection = HikariDb.getConnection
+        ???
     }
 
     def getUserPreferences(user: User): Preferences = ???

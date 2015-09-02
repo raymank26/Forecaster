@@ -1,6 +1,7 @@
 package com.github.raymank26.db
 
 import java.sql.Connection
+import java.util.Properties
 
 import com.github.raymank26.db.HikariDb.DatabaseUrl
 
@@ -12,12 +13,22 @@ import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
  */
 class HikariDb(databaseUrl: DatabaseUrl) {
 
-    val ds = new HikariDataSource(config)
-    config.setDataSourceClassName("org.postgresql.ds.PGSimpleDataSource")
-    config.setJdbcUrl(databaseUrl.toString)
     private val config = new HikariConfig()
+    config.setDataSourceClassName("org.postgresql.ds.PGSimpleDataSource")
+    config.setDataSourceProperties(getDbProperties)
+
+    val ds = new HikariDataSource(config)
 
     def getConnection: Connection = ds.getConnection
+
+    private def getDbProperties: Properties = {
+        val prop = new Properties
+        prop.setProperty("user", databaseUrl.username)
+        prop.setProperty("password", databaseUrl.password)
+        prop.setProperty("serverName", databaseUrl.host)
+        prop.setProperty("portNumber", databaseUrl.port.toString)
+        prop
+    }
 }
 
 object HikariDb {
@@ -29,16 +40,14 @@ object HikariDb {
     private def initDb(): HikariDb = {
         val config = ConfigFactory.load()
         new HikariDb(DatabaseUrl(
-            config.getString("db.username"),
-            config.getString("db.password"),
-            config.getString("db.name")
+            config.getString("forecaster.db.host"),
+            config.getString("forecaster.db.name"),
+            config.getString("forecaster.db.password"),
+            config.getString("forecaster.db.username"),
+            config.getInt("forecaster.db.port")
         ))
     }
 
-    case class DatabaseUrl(username: String, password: String, name: String) {
-        override def toString: String = {
-            s"jdbc:postgresql://localhost:5432/$name?user=$username&password=$password"
-        }
-    }
-
+    case class DatabaseUrl(host: String, name: String, password: String, username: String,
+                           port: Int)
 }
