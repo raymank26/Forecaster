@@ -1,0 +1,4 @@
+forecaster {
+  db: "forecast",
+  username: "username"
+}

@@ -68,3 +68,5 @@ crashlytics-build.properties
 Session.vim
 .netrwhist
 *~
+
+src/main/resources/application.conf

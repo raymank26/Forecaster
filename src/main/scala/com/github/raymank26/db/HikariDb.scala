@@ -24,7 +24,7 @@ object HikariDb {
 
     private lazy val instance = initDb()
 
-    def apply: HikariDb = instance
+    def getConnection: Connection = instance.getConnection
 
     private def initDb(): HikariDb = {
         val config = ConfigFactory.load()
