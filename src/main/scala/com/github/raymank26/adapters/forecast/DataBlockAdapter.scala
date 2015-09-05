@@ -1,6 +1,6 @@
-package com.github.raymank26.adapters
+package com.github.raymank26.adapters.forecast
 
-import com.github.raymank26.adapters.DataPointJsonAdapter.IconReader
+import com.github.raymank26.adapters.forecast.DataPointJsonAdapter.IconReader
 import com.github.raymank26.model.forecast.DataPoint.IconType.Icon
 import com.github.raymank26.model.forecast.{DataBlock, DataPoint}
 

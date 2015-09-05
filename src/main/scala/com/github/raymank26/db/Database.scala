@@ -22,9 +22,8 @@ object Database {
 
     def insertUser(user: User): Unit = {
         DB localTx { implicit session =>
-            sql"""
-                 |insert into $Users (name, message_datetime) values ( ?, ? );
-               """.stripMargin.bind(user.name, user.messageDatetime).update().apply()
+            sql"insert into $Users (name, message_datetime) values ( ?, ? );"
+                .bind(user.name, user.messageDatetime).update().apply()
         }
     }
 

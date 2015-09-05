@@ -1,6 +1,6 @@
 package com.github.raymank26
 
-import com.github.raymank26.adapters.{DataPointJsonAdapter, WeatherAdapter}
+import com.github.raymank26.adapters.forecast.{DataPointJsonAdapter, WeatherAdapter}
 import com.github.raymank26.model.forecast.{DataPoint, Weather}
 
 import org.scalatest.{FunSuite, Matchers}
