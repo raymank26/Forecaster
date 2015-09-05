@@ -19,11 +19,15 @@ libraryDependencies ++= {
         "com.typesafe.akka" %% "akka-http-testkit-experimental"       % akkaStreamV,
         "org.scalatest"     %% "scalatest"                            % scalaTestV % "test",
 
+        "org.scalaj" %% "scalaj-http" % "1.1.5",
+
         "org.flywaydb" % "flyway-core" % "3.2.1",
         "org.scalikejdbc" %% "scalikejdbc" % "2.2.7",
         "com.zaxxer" % "HikariCP" % "2.4.1",
 
         "ch.qos.logback" % "logback-classic" % "1.1.3",
-        "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0"
+        "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
+
+        "org.scalatest" %% "scalatest" % "2.2.4" % "test"
     )
 }

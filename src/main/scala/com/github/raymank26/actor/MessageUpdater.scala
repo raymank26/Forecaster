@@ -1,7 +1,6 @@
 package com.github.raymank26.actor
 
 import akka.actor.Actor
-import org.postgresql.Driver
 
 /**
  * @author Anton Ermak (ermak@yamoney.ru).
@@ -11,6 +10,6 @@ class MessageUpdater extends Actor {
     private var lastOffset: Int = ???
 
     override def receive: Receive = {
-        case _ => ()
+        case _ =>
     }
 }

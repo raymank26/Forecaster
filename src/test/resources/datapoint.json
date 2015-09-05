@@ -1,0 +1,18 @@
+{
+  "time": 1441479663,
+  "summary": "Незначительный Дождь",
+  "icon": "rain",
+  "precipIntensity": 0.0071,
+  "precipProbability": 0.41,
+  "precipType": "rain",
+  "temperature": 55.6,
+  "apparentTemperature": 55.6,
+  "dewPoint": 52.64,
+  "humidity": 0.9,
+  "windSpeed": 5.12,
+  "windBearing": 191,
+  "visibility": 6.21,
+  "cloudCover": 0.16,
+  "pressure": 1005.08,
+  "ozone": 314.79
+}
