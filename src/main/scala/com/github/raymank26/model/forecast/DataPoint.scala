@@ -1,6 +1,6 @@
 package com.github.raymank26.model.forecast
 
-import com.github.raymank26.model.forecast.DataPoint.Icon.Icon
+import com.github.raymank26.model.forecast.DataPoint.IconType.Icon
 import com.github.raymank26.model.forecast.DataPoint.PrecipitationType.PrecipitationType
 
 import org.joda.time.DateTime
@@ -17,7 +17,7 @@ case class DataPoint(time: DateTime,
 
 object DataPoint {
 
-    object Icon {
+    object IconType {
 
         sealed trait Icon
 

@@ -1,9 +1,9 @@
 package com.github.raymank26.adapters
 
 import com.github.raymank26.model.forecast.DataPoint
-import com.github.raymank26.model.forecast.DataPoint.Icon.Icon
+import com.github.raymank26.model.forecast.DataPoint.IconType.Icon
 import com.github.raymank26.model.forecast.DataPoint.PrecipitationType.PrecipitationType
-import com.github.raymank26.model.forecast.DataPoint.{Icon, PrecipitationType}
+import com.github.raymank26.model.forecast.DataPoint.{IconType, PrecipitationType}
 
 import org.joda.time.DateTime
 import spray.json.DefaultJsonProtocol._
@@ -32,17 +32,17 @@ object DataPointJsonAdapter extends RootJsonReader[DataPoint] {
         value.convertTo[DateTime](DateTimeAdapter)
     }
 
-    private object IconReader extends JsonReader[Icon] {
+    object IconReader extends JsonReader[Icon] {
         override def read(json: JsValue): Icon = json.convertTo[String] match {
-            case "rain" => Icon.Rain
-            case "clear-day" => Icon.ClearDay
-            case "clear-night" => Icon.ClearNight
-            case "snow" => Icon.Snow
-            case "sleet" => Icon.Sleet
-            case "wind" => Icon.Wind
-            case "fog" => Icon.Fog
-            case "cloudy" => Icon.Cloudy
-            case _ => Icon.Unknown
+            case "rain" => IconType.Rain
+            case "clear-day" => IconType.ClearDay
+            case "clear-night" => IconType.ClearNight
+            case "snow" => IconType.Snow
+            case "sleet" => IconType.Sleet
+            case "wind" => IconType.Wind
+            case "fog" => IconType.Fog
+            case "cloudy" => IconType.Cloudy
+            case _ => IconType.Unknown
         }
     }
 
