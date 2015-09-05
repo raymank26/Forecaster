@@ -2,6 +2,7 @@ package com.github.raymank26.db
 
 import java.sql.Connection
 import java.util.Properties
+import javax.sql.DataSource
 
 import com.github.raymank26.db.HikariDb.DatabaseUrl
 
@@ -11,15 +12,16 @@ import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 /**
  * @author Anton Ermak (ermak@yamoney.ru).
  */
-class HikariDb(databaseUrl: DatabaseUrl) {
+private class HikariDb(databaseUrl: DatabaseUrl) {
 
-    private val config = new HikariConfig()
-    config.setDataSourceClassName("org.postgresql.ds.PGSimpleDataSource")
-    config.setDataSourceProperties(getDbProperties)
+    val dataSource: DataSource = {
+        val config = new HikariConfig()
+        config.setDataSourceClassName("org.postgresql.ds.PGSimpleDataSource")
+        config.setDataSourceProperties(getDbProperties)
+        new HikariDataSource(config)
+    }
 
-    val ds = new HikariDataSource(config)
-
-    def getConnection: Connection = ds.getConnection
+    def getConnection: Connection = dataSource.getConnection
 
     private def getDbProperties: Properties = {
         val prop = new Properties
@@ -37,6 +39,8 @@ object HikariDb {
 
     def getConnection: Connection = instance.getConnection
 
+    def getDataSource: DataSource = instance.dataSource
+
     private def initDb(): HikariDb = {
         val config = ConfigFactory.load()
         new HikariDb(DatabaseUrl(
@@ -48,6 +52,7 @@ object HikariDb {
         ))
     }
 
-    case class DatabaseUrl(host: String, name: String, password: String, username: String,
-                           port: Int)
+    private[db] case class DatabaseUrl(host: String, name: String, password: String,
+                                       username: String, port: Int)
+
 }
