@@ -9,6 +9,8 @@ import com.github.raymank26.db.HikariDb.DatabaseUrl
 import com.typesafe.config.ConfigFactory
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 
+import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
+
 /**
  * @author Anton Ermak (ermak@yamoney.ru).
  */
@@ -40,6 +42,10 @@ object HikariDb {
     def getConnection: Connection = instance.getConnection
 
     def getDataSource: DataSource = instance.dataSource
+
+    def setSession(): Unit = {
+        ConnectionPool.singleton(new DataSourceConnectionPool(getDataSource))
+    }
 
     private def initDb(): HikariDb = {
         val config = ConfigFactory.load()

@@ -20,6 +20,7 @@ libraryDependencies ++= {
         "org.scalatest"     %% "scalatest"                            % scalaTestV % "test",
 
         "org.flywaydb" % "flyway-core" % "3.2.1",
+        "org.scalikejdbc" %% "scalikejdbc" % "2.2.7",
         "com.zaxxer" % "HikariCP" % "2.4.1",
 
         "ch.qos.logback" % "logback-classic" % "1.1.3",
