@@ -5,4 +5,6 @@ import akka.http.scaladsl.model.DateTime
 /**
  * @author Anton Ermak (ermak@yamoney.ru).
  */
-case class Preferences(forecastReportDatetime: DateTime, latitude: Double, longitude: Double)
+case class Preferences(forecastReportDatetime: DateTime,
+                       latitude: Double,
+                       longitude: Double)

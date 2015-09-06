@@ -12,14 +12,29 @@ import spray.json.{JsValue, RootJsonReader}
  */
 object TelegramMessageAdapter extends RootJsonReader[TelegramMessage] {
 
-    implicit val telegramUserAdapter = TelegramUserAdapter
-    implicit val datetimeAdapter = DateTimeAdapter
+    private val MemberLocation = "location"
+
+    private implicit val telegramUserAdapter = TelegramUserAdapter
+    private implicit val datetimeAdapter = DateTimeAdapter
 
     override def read(json: JsValue): TelegramMessage = {
         val jsonObject = json.asJsObject.fields
-        TelegramMessage(id = jsonObject("id").convertTo[Int],
+        TelegramMessage(id = jsonObject("message_id").convertTo[Int],
             from = jsonObject("from").convertTo[TelegramUser],
             date = jsonObject("date").convertTo[DateTime],
-            text = jsonObject("text").convertTo[String])
+            content = getContent(jsonObject))
+    }
+
+    private def getContent(jsonObject: Map[String, JsValue]): TelegramMessage.Content = {
+        if (jsonObject.isDefinedAt(MemberLocation)) {
+            val location = jsonObject(MemberLocation).asJsObject.fields
+
+            TelegramMessage.Location(
+                location("latitude").convertTo[Double],
+                location("longitude").convertTo[Double]
+            )
+        } else {
+            TelegramMessage.Text(jsonObject("message").convertTo[String])
+        }
     }
 }

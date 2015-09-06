@@ -1,0 +1,20 @@
+{
+  "message_id": 7,
+  "from": {
+    "id": 73979867,
+    "first_name": "Anton",
+    "last_name": "Ermak",
+    "username": "antonermak"
+  },
+  "chat": {
+    "id": 73979867,
+    "first_name": "Anton",
+    "last_name": "Ermak",
+    "username": "antonermak"
+  },
+  "date": 1441554743,
+  "location": {
+    "longitude": 30.397767,
+    "latitude": 59.984599
+  }
+}

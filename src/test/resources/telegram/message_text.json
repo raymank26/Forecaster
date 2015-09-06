@@ -1,0 +1,17 @@
+{
+  "message_id": 7,
+  "from": {
+    "id": 73979867,
+    "first_name": "Anton",
+    "last_name": "Ermak",
+    "username": "antonermak"
+  },
+  "chat": {
+    "id": 73979867,
+    "first_name": "Anton",
+    "last_name": "Ermak",
+    "username": "antonermak"
+  },
+  "date": 1441554743,
+  "message": "hello"
+}

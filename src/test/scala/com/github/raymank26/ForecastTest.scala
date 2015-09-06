@@ -3,15 +3,12 @@ package com.github.raymank26
 import com.github.raymank26.adapters.forecast.{DataPointJsonAdapter, WeatherAdapter}
 import com.github.raymank26.model.forecast.{DataPoint, Weather}
 
-import org.scalatest.{FunSuite, Matchers}
 import spray.json._
-
-import scala.io.Source
 
 /**
  * @author Anton Ermak (ermak@yamoney.ru).
  */
-class ForecastTest extends FunSuite with Matchers {
+class ForecastTest extends Suite {
 
     test("parsing forecast data point") {
         val dataPoint = JsonParser(readFile("/datapoint.json"))
@@ -25,9 +22,5 @@ class ForecastTest extends FunSuite with Matchers {
             .convertTo[Weather](WeatherAdapter)
 
         println(weather.hourly.data.length)
-    }
-
-    private def readFile(filename: String) = {
-        Source.fromInputStream(getClass.getResourceAsStream(filename)).mkString
     }
 }

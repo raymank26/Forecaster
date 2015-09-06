@@ -1,8 +1,8 @@
 package com.github.raymank26.db
 
-import com.github.raymank26.model.User
+import com.github.raymank26.model.telegram.TelegramUser
+import com.github.raymank26.model.{Preferences, User}
 
-import org.joda.time.DateTime
 import scalikejdbc._
 
 /**
@@ -11,6 +11,7 @@ import scalikejdbc._
 object Database {
 
     private val Users = sqls"users"
+    private val Preferences = sqls"preferences"
 
     HikariDb.setSession()
 
@@ -22,12 +23,39 @@ object Database {
 
     def saveUser(user: User): Unit = {
         DB localTx { implicit session =>
-            sql"insert into $Users (name, message_datetime) values ( ?, ? );"
-                .bind(user.name, user.messageDatetime).update().apply()
+            sql"insert into $Users (name) values (?);"
+                .bind(user.name).update().apply()
         }
     }
 
-    def unwrapUser(rs: WrappedResultSet): User = {
-        User(Some(rs.int("id")), rs.string("name"), DateTime.now)
+    def getUserPreferences(userId: Int): Option[Preferences] = {
+        DB readOnly { implicit session =>
+            sql"select * from $Preferences where user_id = ?"
+                .bind(userId)
+                .map(rs => unwrapPreferences(rs))
+                .single()
+                .apply()
+        }
     }
+
+    def getPreferences(telegramUser: TelegramUser) = {
+        telegramUser.username
+    }
+
+    def createUserPreferences(preferences: Preferences, userId: Int) = {
+        DB localTx { implicit session =>
+            sql"""insert into $Preferences (message_datetime, user_id, latitude, longitude)
+                                            |values (?, ?, ?, ?)
+               """
+                .stripMargin
+                .bind(preferences.forecastReportDatetime, userId, preferences.latitude,
+                    preferences.longitude)
+        }
+    }
+
+    private def unwrapUser(rs: WrappedResultSet): User = {
+        User(Some(rs.int("id")), rs.string("name"))
+    }
+
+    private def unwrapPreferences(rs: WrappedResultSet): Preferences = ???
 }
