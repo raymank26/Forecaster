@@ -28,7 +28,7 @@ class ForecastTest extends Suite {
 
     test("fetch forecast info") {
         val res = Forecast.getCurrentForecast(ForecastUserSettings(latitude = 30.3,
-            longitude = 30.3))
+            longitude = 32.3))
         println(res.currently)
     }
 }
