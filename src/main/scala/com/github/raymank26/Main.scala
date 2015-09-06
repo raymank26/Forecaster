@@ -12,7 +12,7 @@ import org.joda.time.DateTime
 object Main {
 
     def main(args: Array[String]): Unit = {
-        Database.insertUser(User(None, "Anton Ermak", DateTime.now))
+        Database.saveUser(User(None, "Anton Ermak", DateTime.now))
         println(Database.getUsers)
     }
 }
