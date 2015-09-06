@@ -16,7 +16,7 @@ object Forecast {
 
     private val forecastApiKey: String = {
         val typesafeConfig = ConfigFactory.load()
-        typesafeConfig.getString(s"forecast.apiKey")
+        typesafeConfig.getString(s"forecaster.forecast.api-key")
     }
 
     def getCurrentForecast(settings: ForecastUserSettings) = {
@@ -30,7 +30,7 @@ object Forecast {
     private def makeRequest(settings: ForecastUserSettings) = {
         val url = s"""https://api.forecast.io/
                      |forecast/$forecastApiKey/${settings.latitude},${settings.longitude}"""
-            .stripMargin
+            .stripMargin.replace("\n", "")
         scalaj.http.Http(url)
             .param("units", "si")
             .param("lang", "ru")

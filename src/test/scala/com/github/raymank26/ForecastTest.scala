@@ -1,6 +1,8 @@
 package com.github.raymank26
 
 import com.github.raymank26.adapters.forecast.{DataPointJsonAdapter, WeatherAdapter}
+import com.github.raymank26.controller.Forecast
+import com.github.raymank26.controller.Forecast.ForecastUserSettings
 import com.github.raymank26.model.forecast.{DataPoint, Weather}
 
 import spray.json._
@@ -22,5 +24,11 @@ class ForecastTest extends Suite {
             .convertTo[Weather](WeatherAdapter)
 
         println(weather.hourly.data.length)
+    }
+
+    test("fetch forecast info") {
+        val res = Forecast.getCurrentForecast(ForecastUserSettings(latitude = 30.3,
+            longitude = 30.3))
+        println(res.currently)
     }
 }
