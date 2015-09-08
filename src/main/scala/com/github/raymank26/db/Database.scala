@@ -1,7 +1,7 @@
 package com.github.raymank26.db
 
 import com.github.raymank26.controller.Forecast
-import com.github.raymank26.model.telegram.TelegramUser
+import com.github.raymank26.model.telegram.{TelegramMessage, TelegramUser}
 import com.github.raymank26.model.{Preferences, User}
 
 import scalikejdbc._
@@ -37,6 +37,10 @@ object Database {
                 .single()
                 .apply()
         }
+    }
+
+    def saveLocation(telegramUser: TelegramUser, location: TelegramMessage.Location) = {
+        ???
     }
 
     def getForecastPreferences(telegramUser: TelegramUser): Option[Forecast.ForecastUserSettings]

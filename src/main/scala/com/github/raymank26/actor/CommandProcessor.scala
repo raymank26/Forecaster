@@ -58,7 +58,7 @@ object CommandProcessor {
 
     private val currentForecast = "current"
 
-    def apply(implicit system: ActorSystem): ActorRef = system.actorOf(Props[CommandProcessor])
+    def apply()(implicit system: ActorSystem): ActorRef = system.actorOf(Props[CommandProcessor])
 
     private def makeForecastMessage(forecast: Weather): String = {
         s"""

@@ -17,8 +17,8 @@ class MessageDispatcher extends Actor {
     override def receive: Receive = {
         case msg: TelegramMessage => msg.content match {
             case txt: TelegramMessage.Text if txt.text.startsWith("/") =>
-                CommandProcessor.apply ! msg
-            case _: TelegramMessage.Location => CommandProcessor.apply ! msg
+                CommandProcessor() ! msg
+            case _ => SettingsActor() ! msg
         }
         case msg => logger.error(s"no such handler for msg $msg")
     }
