@@ -1,5 +1,6 @@
 package com.github.raymank26.db
 
+import com.github.raymank26.controller.Forecast
 import com.github.raymank26.model.telegram.TelegramUser
 import com.github.raymank26.model.{Preferences, User}
 
@@ -28,18 +29,19 @@ object Database {
         }
     }
 
-    def getUserPreferences(userId: Int): Option[Preferences] = {
+    def getUserPreferences(username: String): Option[Preferences] = {
         DB readOnly { implicit session =>
             sql"select * from $Preferences where user_id = ?"
-                .bind(userId)
+                .bind(username)
                 .map(rs => unwrapPreferences(rs))
                 .single()
                 .apply()
         }
     }
 
-    def getPreferences(telegramUser: TelegramUser) = {
-        telegramUser.username
+    def getForecastPreferences(telegramUser: TelegramUser): Option[Forecast.ForecastUserSettings]
+    = {
+        ???
     }
 
     def createUserPreferences(preferences: Preferences, userId: Int) = {
