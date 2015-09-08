@@ -1,8 +1,5 @@
 package com.github.raymank26
 
-import com.github.raymank26.db.Database
-import com.github.raymank26.model.User
-
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.ServerBinding
@@ -19,10 +16,8 @@ object Main extends Api {
     implicit val materializer = ActorMaterializer()
 
     def main(args: Array[String]): Unit = {
-        Database.saveUser(User(None, "Anton Ermak"))
-        println(Database.getUsers)
 
-        val bindingFuture: Future[ServerBinding] = Http().bindAndHandle(routes, "localhost", 8080)
+        val bindingFuture: Future[ServerBinding] = Http().bindAndHandle(routes, "localhost", 8090)
 
         println(s"Server online at http://localhost:8080/\n")
     }
