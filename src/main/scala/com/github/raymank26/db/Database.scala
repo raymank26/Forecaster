@@ -4,6 +4,7 @@ import com.github.raymank26.controller.Forecast
 import com.github.raymank26.model.telegram.{TelegramMessage, TelegramUser}
 import com.github.raymank26.model.{Preferences, User}
 
+import org.joda.time.DateTime
 import scalikejdbc._
 
 /**
@@ -39,8 +40,24 @@ object Database {
         }
     }
 
-    def saveLocation(telegramUser: TelegramUser, location: TelegramMessage.Location) = {
-        ???
+    def saveLocation(telegramUser: TelegramUser, location: TelegramMessage.Location): Unit = {
+        val userId: Option[Int] = DB readOnly { implicit session =>
+            sql"""select user_id from $Users where username = ?"""
+                .bind(telegramUser.username)
+                .map(rs => rs.int(0))
+                .single()
+                .apply()
+
+        }
+        DB localTx { implicit session =>
+            sql"""insert into $Preferences (message_datetime, user_id, latitude, longitude)
+                                            |values (?, ?, ?, ?)
+               """
+                .stripMargin
+                .bind(DateTime.now(), userId, location.latitude, location.longitude)
+                .update()
+                .apply()
+        }
     }
 
     def getForecastPreferences(telegramUser: TelegramUser): Option[Forecast.ForecastUserSettings]

@@ -1,5 +1,8 @@
 package com.github.raymank26
 
+import com.github.raymank26.actor.MessageDispatcher
+import com.github.raymank26.model.telegram.TelegramMessage
+
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.ServerBinding
@@ -8,7 +11,7 @@ import akka.stream.ActorMaterializer
 import scala.concurrent.Future
 
 /**
- * @author raymank26
+ * @author Anton Ermak (ermak@yamoney.ru).
  */
 object Main extends Api {
 
@@ -19,6 +22,9 @@ object Main extends Api {
 
         val bindingFuture: Future[ServerBinding] = Http().bindAndHandle(routes, "localhost", 8090)
 
-        println(s"Server online at http://localhost:8080/\n")
+        println(s"Server online at http://localhost:8090/\n")
     }
+
+    override def processRequest(telegramMessage: TelegramMessage): Unit =
+        MessageDispatcher() ! telegramMessage
 }

@@ -2,7 +2,7 @@ package com.github.raymank26.actor
 
 import com.github.raymank26.model.telegram.TelegramMessage
 
-import akka.actor.Actor
+import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.event.Logging
 
 /**
@@ -22,4 +22,10 @@ class MessageDispatcher extends Actor {
         }
         case msg => logger.error(s"no such handler for msg $msg")
     }
+}
+
+object MessageDispatcher {
+
+    def apply()(implicit system: ActorSystem): ActorRef = system.actorOf(Props[MessageDispatcher])
+
 }

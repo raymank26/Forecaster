@@ -9,6 +9,6 @@ object ConfigManager {
 
     val config = ConfigFactory.load()
 
-    def getBotId: String = config.getString("forecaster.api-key")
+    def getBotId: String = config.getString("forecaster.telegram.api-key")
 
 }
