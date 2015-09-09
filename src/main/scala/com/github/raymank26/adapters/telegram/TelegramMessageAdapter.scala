@@ -34,7 +34,7 @@ object TelegramMessageAdapter extends RootJsonReader[TelegramMessage] {
                 location("longitude").convertTo[Double]
             )
         } else {
-            TelegramMessage.Text(jsonObject("message").convertTo[String])
+            TelegramMessage.Text(jsonObject("text").convertTo[String])
         }
     }
 }

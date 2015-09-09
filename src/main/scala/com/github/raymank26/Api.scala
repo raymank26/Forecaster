@@ -23,13 +23,15 @@ trait Api extends SprayJsonSupport {
     implicit val materializer: Materializer
     implicit val system: ActorSystem
 
+    // pathPrefix(s"${ConfigManager.getBotId}/receiver")
+
     val routes =
-        path(s"/${ConfigManager.getBotId}/receiver") {
-            (post & entity(as[TelegramMessage])) { msg => ctx =>
-                processRequest(msg)
-                ctx.complete("OK")
-            }
-        } ~ get { ctx =>
+        (post & entity(as[TelegramMessage])) { msg => ctx =>
+
+            processRequest(msg)
+            ctx.complete("OK")
+
+        } ~ { ctx =>
             logger.warn(s"No handler for ${ctx.request}")
             ctx.complete("FAIL")
         }

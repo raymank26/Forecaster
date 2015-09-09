@@ -27,11 +27,15 @@ class CommandProcessor extends Actor {
             val sendTo = sender()
             val chatId = from.chatId
 
-            Future {
+            val forecastFuture = Future {
                 Database.getForecastPreferences(from)
-            } onSuccess {
+            }
+            forecastFuture.onSuccess {
                 case Some(prefs) => sendForecast(sendTo, prefs, chatId)
                 case None => preferencesRequired(sendTo, chatId)
+            }
+            forecastFuture.onFailure {
+                case exception: Throwable => logger.error(exception, "error")
             }
 
         case msg: TelegramMessage =>
@@ -56,7 +60,7 @@ class CommandProcessor extends Actor {
 
 object CommandProcessor {
 
-    private val currentForecast = "current"
+    private val currentForecast = "/current"
 
     def apply()(implicit system: ActorSystem): ActorRef = system.actorOf(Props[CommandProcessor])
 
