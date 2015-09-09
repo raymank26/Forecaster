@@ -1,10 +1,12 @@
 package com.github.raymank26.actor
 
+import com.github.raymank26.controller.Forecast.ForecastUserSettings
 import com.github.raymank26.controller.Telegram
 import com.github.raymank26.db.Database
 import com.github.raymank26.model.telegram.{TelegramMessage, TelegramUser}
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import akka.event.Logging
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -16,14 +18,18 @@ class SettingsActor extends Actor {
 
     import context.dispatcher
 
+    private val logger = Logging(context.system, this)
+
     override def receive: Receive = {
 
         case msg: TelegramMessage => msg.content match {
 
             case location: TelegramMessage.Location =>
                 saveLocation(location, msg.from) onComplete {
-                    case Success(_) => Telegram.sendMessage("location saved", msg.from.chatId)
-                    case Failure(_) => Telegram.sendMessage("something went wrong", msg.from.chatId)
+                    case Success(_) => Telegram.sendMessage("Location saved", msg.from.chatId)
+                    case Failure(ex) =>
+                        logger.error(ex, "location save error")
+                        Telegram.sendMessage("Something went wrong", msg.from.chatId)
                 }
 
             case _ => Telegram.sendMessage("location?", msg.from.chatId)
@@ -32,7 +38,8 @@ class SettingsActor extends Actor {
 
     private def saveLocation(location: TelegramMessage.Location, user: TelegramUser) = {
         Future {
-            Database.saveLocation(user, location)
+            Database.saveOrUpdateForecastPreferences(user,
+                ForecastUserSettings(location.latitude, location.longitude))
         }
     }
 }
