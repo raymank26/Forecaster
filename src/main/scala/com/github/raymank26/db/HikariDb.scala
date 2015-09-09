@@ -18,7 +18,8 @@ private class HikariDb(databaseUrl: DatabaseUrl) {
 
     val dataSource: DataSource = {
         val config = new HikariConfig()
-        config.setDataSourceClassName("org.postgresql.ds.PGSimpleDataSource")
+        val url = s"jdbc:postgresql://${databaseUrl.host}:${databaseUrl.port}/${databaseUrl.name}"
+        config.setJdbcUrl(url)
         config.setDataSourceProperties(getDbProperties)
         new HikariDataSource(config)
     }
@@ -29,8 +30,6 @@ private class HikariDb(databaseUrl: DatabaseUrl) {
         val prop = new Properties
         prop.setProperty("user", databaseUrl.username)
         prop.setProperty("password", databaseUrl.password)
-        prop.setProperty("serverName", databaseUrl.host)
-        prop.setProperty("portNumber", databaseUrl.port.toString)
         prop
     }
 }

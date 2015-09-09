@@ -45,14 +45,13 @@ object Database {
         getUserDbId(telegramUser).getOrElse(saveUser(telegramUser))
     }
 
-
     private def saveOrUpdateForecastPreferences(userId: Int,
                                                 forecastUserSettings: ForecastUserSettings) = {
         getForecastPreferences(userId) match {
             case Some((id, _)) => updateForecastPreferences(id, forecastUserSettings)
             case None =>
                 DB localTx { implicit session =>
-                    sql"insert into $Preferences (user_id, message_datetime, latitude, longitude) values (?, ?, ?, ?)"
+                    sql"insert into $Preferences(user_id, message_datetime, latitude, longitude) values (?, ?, ?, ?)"
                         .bind(userId, DateTime.now, forecastUserSettings.latitude,
                             forecastUserSettings.longitude).update().apply()
                 }
