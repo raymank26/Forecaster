@@ -1,0 +1,7 @@
+FROM postgres
+
+#RUN usermod -u 1000 postgres
+
+#RUN usermod -G staff postgres
+
+COPY ./postgres-init.sh /docker-entrypoint-initdb.d/

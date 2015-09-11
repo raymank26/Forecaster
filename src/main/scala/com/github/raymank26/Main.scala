@@ -20,7 +20,7 @@ object Main extends Api {
 
     def main(args: Array[String]): Unit = {
 
-        val bindingFuture: Future[ServerBinding] = Http().bindAndHandle(routes, "localhost", 8090)
+        val bindingFuture: Future[ServerBinding] = Http().bindAndHandle(routes, "0.0.0.0", 8090)
 
         println(s"Server online at http://localhost:8090/\n")
     }

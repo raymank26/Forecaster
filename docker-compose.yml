@@ -1,0 +1,17 @@
+app:
+    build: .
+    dockerfile: Dockerfile.app
+    ports:
+        - "8090:8090"
+    links:
+        - db:pg
+    container_name: forecast-app
+
+db:
+    build: .
+    dockerfile: Dockerfile.postgres
+    container_name: forecast-db
+    ports:
+        - "5555:5432"
+    # volumes:
+    #     - ./postgres:/var/lib/postgresql/data
