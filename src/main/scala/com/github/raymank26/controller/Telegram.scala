@@ -7,7 +7,7 @@ import com.typesafe.config.ConfigFactory
 import scalaj.http.Http
 
 /**
- * @author Anton Ermak (ermak@yamoney.ru).
+ * @author Anton Ermak
  */
 object Telegram {
 

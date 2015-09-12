@@ -3,7 +3,7 @@ package com.github.raymank26
 import com.typesafe.config.ConfigFactory
 
 /**
- * @author Anton Ermak (ermak@yamoney.ru).
+ * @author Anton Ermak
  */
 object ConfigManager {
 

@@ -9,7 +9,7 @@ import akka.event.Logging
 import akka.routing.RoundRobinPool
 
 /**
- * @author Anton Ermak (ermak@yamoney.ru).
+ * @author Anton Ermak
  */
 class MessageDispatcher extends Actor with Utils {
 

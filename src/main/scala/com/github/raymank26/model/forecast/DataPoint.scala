@@ -6,7 +6,7 @@ import com.github.raymank26.model.forecast.DataPoint.PrecipitationType.Precipita
 import org.joda.time.DateTime
 
 /**
- * @author Anton Ermak (ermak@yamoney.ru).
+ * @author Anton Ermak
  */
 case class DataPoint(time: DateTime,
                      summary: String,

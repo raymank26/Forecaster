@@ -7,7 +7,7 @@ import org.joda.time.DateTime
 import scalikejdbc._
 
 /**
- * @author Anton Ermak (ermak@yamoney.ru).
+ * @author Anton Ermak
  */
 object Database {
 
@@ -28,6 +28,30 @@ object Database {
         }
     }
 
+    private def getForecastPreferences(userId: Int): Option[(Int, ForecastUserSettings)] = {
+        DB readOnly { implicit session =>
+            sql"select id, latitude, longitude from $Preferences where user_id = ?"
+                .bind(userId)
+                .map(rs => mapRsToForecast(rs))
+                .single()
+                .apply()
+        }
+    }
+
+    private def mapRsToForecast(rs: WrappedResultSet): (Int, ForecastUserSettings) = {
+        (rs.int("id"), ForecastUserSettings(rs.double("latitude"), rs.double("longitude")))
+    }
+
+    private def getUserDbId(user: TelegramUser): Option[Int] = {
+        DB readOnly { implicit session =>
+            sql"""select id from $Users where username = ?"""
+                .bind(user.username)
+                .map(rs => rs.int("id"))
+                .single()
+                .apply()
+        }
+    }
+
     /**
      * Saves forecast preferences
      *
@@ -43,6 +67,13 @@ object Database {
 
     private def getUserOrSave(telegramUser: TelegramUser): Int = {
         getUserDbId(telegramUser).getOrElse(saveUser(telegramUser))
+    }
+
+    private def saveUser(user: TelegramUser): Int = {
+        DB localTx { implicit session =>
+            sql"""insert into $Users (username, user_id) values (?, ?)""".bind(user.username,
+                user.chatId).update().apply()
+        }
     }
 
     private def saveOrUpdateForecastPreferences(userId: Int,
@@ -66,36 +97,5 @@ object Database {
                 .update()
                 .apply()
         }
-    }
-
-    private def getForecastPreferences(userId: Int): Option[(Int, ForecastUserSettings)] = {
-        DB readOnly { implicit session =>
-            sql"select id, latitude, longitude from $Preferences where user_id = ?"
-                .bind(userId)
-                .map(rs => mapRsToForecast(rs))
-                .single()
-                .apply()
-        }
-    }
-
-    private def saveUser(user: TelegramUser): Int = {
-        DB localTx { implicit session =>
-            sql"""insert into $Users (username, user_id) values (?, ?)""".bind(user.username,
-                user.chatId).update().apply()
-        }
-    }
-
-    private def getUserDbId(user: TelegramUser): Option[Int] = {
-        DB readOnly { implicit session =>
-            sql"""select id from $Users where username = ?"""
-                .bind(user.username)
-                .map(rs => rs.int("id"))
-                .single()
-                .apply()
-        }
-    }
-
-    private def mapRsToForecast(rs: WrappedResultSet): (Int, ForecastUserSettings) = {
-        (rs.int("id"), ForecastUserSettings(rs.double("latitude"), rs.double("longitude")))
     }
 }

@@ -3,7 +3,7 @@ package com.github.raymank26.model.telegram
 import org.joda.time.DateTime
 
 /**
- * @author Anton Ermak (ermak@yamoney.ru).
+ * @author Anton Ermak
  */
 case class TelegramMessage(id: Int, from: TelegramUser, date: DateTime,
                            content: TelegramMessage.Content)

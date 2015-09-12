@@ -11,7 +11,7 @@ import akka.stream.ActorMaterializer
 import scala.concurrent.Future
 
 /**
- * @author Anton Ermak (ermak@yamoney.ru).
+ * @author Anton Ermak
  */
 object Main extends Api {
 

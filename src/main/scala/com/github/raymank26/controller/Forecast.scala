@@ -8,7 +8,7 @@ import com.typesafe.config.ConfigFactory
 import spray.json._
 
 /**
- * @author Anton Ermak (ermak@yamoney.ru).
+ * @author Anton Ermak
  */
 object Forecast {
 

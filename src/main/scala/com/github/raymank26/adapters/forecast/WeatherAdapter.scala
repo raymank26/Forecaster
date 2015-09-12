@@ -5,7 +5,7 @@ import com.github.raymank26.model.forecast.{DataBlock, DataPoint, Weather}
 import spray.json.{JsValue, RootJsonReader}
 
 /**
- * @author Anton Ermak (ermak@yamoney.ru).
+ * @author Anton Ermak
  */
 object WeatherAdapter extends RootJsonReader[Weather] {
     override def read(json: JsValue): Weather = {

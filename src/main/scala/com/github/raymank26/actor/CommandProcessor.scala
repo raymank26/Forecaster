@@ -14,7 +14,7 @@ import akka.event.Logging
 import scala.concurrent.Future
 
 /**
- * @author Anton Ermak (ermak@yamoney.ru).
+ * @author Anton Ermak
  */
 class CommandProcessor extends Actor with Utils {
 

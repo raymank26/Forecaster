@@ -1,6 +1,6 @@
 package com.github.raymank26.model.forecast
 
 /**
- * @author Anton Ermak (ermak@yamoney.ru).
+ * @author Anton Ermak
  */
 case class DataBlock(summary: String, icon: DataPoint.IconType.Icon, data: Seq[DataPoint])

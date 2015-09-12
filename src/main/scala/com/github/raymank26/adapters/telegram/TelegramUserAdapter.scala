@@ -6,7 +6,7 @@ import spray.json.DefaultJsonProtocol._
 import spray.json.{JsValue, RootJsonReader}
 
 /**
- * @author Anton Ermak (ermak@yamoney.ru).
+ * @author Anton Ermak
  */
 object TelegramUserAdapter extends RootJsonReader[TelegramUser] {
     override def read(json: JsValue): TelegramUser = {
