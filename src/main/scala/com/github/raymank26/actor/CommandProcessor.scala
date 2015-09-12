@@ -44,8 +44,6 @@ class CommandProcessor extends Actor {
         case cmd => logger.error(s"not such message supported $cmd")
     }
 
-    private def getChatId(msg: TelegramMessage) = msg.from.chatId
-
     private def preferencesRequired(sender: ActorRef, chatId: Int) = Future {
         Telegram.sendMessage("Send to me your location firstly", chatId)
     }
