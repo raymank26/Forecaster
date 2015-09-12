@@ -14,7 +14,7 @@ import scala.util.{Failure, Success}
 /**
  * @author Anton Ermak (ermak@yamoney.ru).
  */
-class SettingsActor extends Actor {
+class SettingsActor extends Actor with Utils {
 
     import context.dispatcher
 
@@ -32,7 +32,7 @@ class SettingsActor extends Actor {
                         Telegram.sendMessage("Something went wrong", msg.from.chatId)
                 }
 
-            case _ => Telegram.sendMessage("location?", msg.from.chatId)
+            case _ => messageNotSupported(msg)
         }
     }
 

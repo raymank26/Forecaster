@@ -1,5 +1,6 @@
 package com.github.raymank26.actor
 
+import com.github.raymank26.controller.Telegram
 import com.github.raymank26.model.telegram.TelegramMessage
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
@@ -8,7 +9,7 @@ import akka.event.Logging
 /**
  * @author Anton Ermak (ermak@yamoney.ru).
  */
-class MessageDispatcher extends Actor {
+class MessageDispatcher extends Actor with Utils {
 
     import context.system
 
@@ -18,9 +19,16 @@ class MessageDispatcher extends Actor {
         case msg: TelegramMessage => msg.content match {
             case txt: TelegramMessage.Text if txt.text.startsWith("/") =>
                 CommandProcessor() ! msg
-            case _ => SettingsActor() ! msg
+            case location: TelegramMessage.Location => SettingsActor() ! msg
+            case _ => unsupportedMessage(msg)
         }
-        case msg => logger.error(s"no such handler for msg $msg")
+        case msg => messageNotSupported(msg)
+    }
+
+    private def unsupportedMessage(msg: TelegramMessage): Unit = {
+        logger.warning(s"no such handler for $msg")
+        Telegram.sendMessage("I don't understand you", msg.from.chatId)
+
     }
 }
 

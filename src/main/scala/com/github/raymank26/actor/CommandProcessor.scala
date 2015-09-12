@@ -1,10 +1,12 @@
 package com.github.raymank26.actor
 
+import com.github.raymank26.actor.CommandProcessor.currentForecast
 import com.github.raymank26.controller.Forecast.ForecastUserSettings
 import com.github.raymank26.controller.{Forecast, Telegram}
 import com.github.raymank26.db.Database
 import com.github.raymank26.model.forecast.Weather
 import com.github.raymank26.model.telegram.TelegramMessage
+import com.github.raymank26.model.telegram.TelegramMessage.Text
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.event.Logging
@@ -14,7 +16,7 @@ import scala.concurrent.Future
 /**
  * @author Anton Ermak (ermak@yamoney.ru).
  */
-class CommandProcessor extends Actor {
+class CommandProcessor extends Actor with Utils {
 
     val logger = Logging(context.system, this)
 
@@ -22,8 +24,9 @@ class CommandProcessor extends Actor {
 
     override def receive: Receive = {
 
-        case TelegramMessage(_, from, _, TelegramMessage.Text(CommandProcessor.currentForecast)) =>
+        case msg: TelegramMessage if msg.content == Text(currentForecast) =>
 
+            val from = msg.from
             val sendTo = sender()
             val chatId = from.chatId
 
@@ -41,7 +44,7 @@ class CommandProcessor extends Actor {
         case msg: TelegramMessage =>
             Telegram.sendMessage("Command isn't supported", msg.from.chatId)
 
-        case cmd => logger.error(s"not such message supported $cmd")
+        case msg => messageNotSupported(msg)
     }
 
     private def preferencesRequired(sender: ActorRef, chatId: Int) = Future {
