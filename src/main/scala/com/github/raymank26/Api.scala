@@ -1,7 +1,7 @@
 package com.github.raymank26
 
 import com.github.raymank26.adapters.telegram.UpdateAdapter
-import com.github.raymank26.model.telegram.TelegramMessage
+import com.github.raymank26.model.telegram.{TelegramMessage, TelegramUpdate}
 
 import akka.actor.ActorSystem
 import akka.event.Logging
@@ -19,10 +19,9 @@ trait Api extends SprayJsonSupport {
 
     implicit val updateAdapter = UpdateAdapter
 
-    val routes = logResult(("foo", Logging.WarningLevel)) {
-        (post & entity(as[(Int, TelegramMessage)])) { update => ctx =>
-
-            processRequest(update._2)
+    val routes = logResult(("routes", Logging.WarningLevel)) {
+        (post & entity(as[TelegramUpdate])) { update => ctx =>
+            processRequest(update.telegramMessage)
             ctx.complete("OK")
         }
     }
