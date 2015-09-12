@@ -1,6 +1,6 @@
 package com.github.raymank26.actor
 
-import com.github.raymank26.actor.CommandProcessor.currentForecast
+import com.github.raymank26.actor.CommandProcessor.CurrentForecast
 import com.github.raymank26.controller.Forecast.ForecastUserSettings
 import com.github.raymank26.controller.{Forecast, Telegram}
 import com.github.raymank26.db.Database
@@ -8,7 +8,7 @@ import com.github.raymank26.model.forecast.Weather
 import com.github.raymank26.model.telegram.TelegramMessage
 import com.github.raymank26.model.telegram.TelegramMessage.Text
 
-import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import akka.actor.{Actor, ActorContext, ActorRef, Props}
 import akka.event.Logging
 
 import scala.concurrent.Future
@@ -24,7 +24,7 @@ class CommandProcessor extends Actor with Utils {
 
     override def receive: Receive = {
 
-        case msg: TelegramMessage if msg.content == Text(currentForecast) =>
+        case msg: TelegramMessage if msg.content == Text(CurrentForecast) =>
 
             val from = msg.from
             val sendTo = sender()
@@ -61,9 +61,9 @@ class CommandProcessor extends Actor with Utils {
 
 object CommandProcessor {
 
-    private val currentForecast = "/current"
+    private val CurrentForecast = "/current"
 
-    def apply()(implicit system: ActorSystem): ActorRef = system.actorOf(Props[CommandProcessor])
+    def apply(context: ActorContext): ActorRef = context.actorOf(Props[CommandProcessor])
 
     private def makeForecastMessage(forecast: Weather): String = {
         s"""

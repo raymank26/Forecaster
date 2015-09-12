@@ -5,7 +5,7 @@ import com.github.raymank26.controller.Telegram
 import com.github.raymank26.db.Database
 import com.github.raymank26.model.telegram.{TelegramMessage, TelegramUser}
 
-import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import akka.actor.{Actor, ActorContext, ActorRef, Props}
 import akka.event.Logging
 
 import scala.concurrent.Future
@@ -46,8 +46,8 @@ class SettingsActor extends Actor with Utils {
 
 object SettingsActor {
 
-    def apply()(implicit system: ActorSystem): ActorRef = {
-        system.actorOf(Props[SettingsActor])
+    def apply(context: ActorContext): ActorRef = {
+        context.actorOf(Props[SettingsActor])
     }
 
 }
