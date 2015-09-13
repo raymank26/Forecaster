@@ -1,6 +1,6 @@
 package com.github.raymank26.actor
 
-import com.github.raymank26.controller.Forecast.ForecastUserSettings
+import com.github.raymank26.controller.Forecast.GeoPrefs
 import com.github.raymank26.controller.Telegram
 import com.github.raymank26.db.Database
 import com.github.raymank26.model.telegram.{TelegramMessage, TelegramUser}
@@ -39,7 +39,7 @@ class SettingsActor extends Actor with Utils {
     private def saveLocation(location: TelegramMessage.Location, user: TelegramUser) = {
         Future {
             Database.saveOrUpdateForecastPreferences(user,
-                ForecastUserSettings(location.latitude, location.longitude))
+                GeoPrefs(location.latitude, location.longitude))
         }
     }
 }

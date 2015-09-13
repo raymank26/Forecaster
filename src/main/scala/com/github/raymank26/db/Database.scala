@@ -1,6 +1,6 @@
 package com.github.raymank26.db
 
-import com.github.raymank26.controller.Forecast.ForecastUserSettings
+import com.github.raymank26.controller.Forecast.GeoPrefs
 import com.github.raymank26.model.telegram.TelegramUser
 
 import org.joda.time.DateTime
@@ -22,13 +22,13 @@ object Database {
      * @param telegramUser user instance
      * @return forecast preferences option
      */
-    def getForecastPreferences(telegramUser: TelegramUser): Option[ForecastUserSettings] = {
+    def getForecastPreferences(telegramUser: TelegramUser): Option[GeoPrefs] = {
         getUserDbId(telegramUser).flatMap { userId =>
             getForecastPreferences(userId).map(_._2)
         }
     }
 
-    private def getForecastPreferences(userId: Int): Option[(Int, ForecastUserSettings)] = {
+    private def getForecastPreferences(userId: Int): Option[(Int, GeoPrefs)] = {
         DB readOnly { implicit session =>
             sql"select id, latitude, longitude from $Preferences where user_id = ?"
                 .bind(userId)
@@ -38,8 +38,8 @@ object Database {
         }
     }
 
-    private def mapRsToForecast(rs: WrappedResultSet): (Int, ForecastUserSettings) = {
-        (rs.int("id"), ForecastUserSettings(rs.double("latitude"), rs.double("longitude")))
+    private def mapRsToForecast(rs: WrappedResultSet): (Int, GeoPrefs) = {
+        (rs.int("id"), GeoPrefs(rs.double("latitude"), rs.double("longitude")))
     }
 
     private def getUserDbId(user: TelegramUser): Option[Int] = {
@@ -59,7 +59,7 @@ object Database {
      * @param forecastUserSettings settings to save
      */
     def saveOrUpdateForecastPreferences(telegramUser: TelegramUser,
-                                        forecastUserSettings: ForecastUserSettings): Unit = {
+                                        forecastUserSettings: GeoPrefs): Unit = {
 
         val userId = getUserOrSave(telegramUser)
         saveOrUpdateForecastPreferences(userId, forecastUserSettings)
@@ -77,7 +77,7 @@ object Database {
     }
 
     private def saveOrUpdateForecastPreferences(userId: Int,
-                                                forecastUserSettings: ForecastUserSettings) = {
+                                                forecastUserSettings: GeoPrefs) = {
         getForecastPreferences(userId) match {
             case Some((id, _)) => updateForecastPreferences(id, forecastUserSettings)
             case None =>
@@ -90,7 +90,7 @@ object Database {
     }
 
     private def updateForecastPreferences(rowId: Int,
-                                          forecastUserSettings: ForecastUserSettings) = {
+                                          forecastUserSettings: GeoPrefs) = {
         DB localTx { implicit session =>
             sql"update $Preferences set latitude = ?, longitude = ? where id = ?"
                 .bind(forecastUserSettings.latitude, forecastUserSettings.longitude, rowId)

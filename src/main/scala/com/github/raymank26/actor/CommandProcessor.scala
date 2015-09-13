@@ -1,15 +1,15 @@
 package com.github.raymank26.actor
 
 import com.github.raymank26.actor.CommandProcessor.HelpMessage
-import com.github.raymank26.controller.Forecast.ForecastUserSettings
-import com.github.raymank26.controller.{Forecast, Telegram}
+import com.github.raymank26.controller.Forecast.GeoPrefs
+import com.github.raymank26.controller.{Forecast, Telegram, Webcams}
 import com.github.raymank26.db.Database
 import com.github.raymank26.model.forecast.Weather
 import com.github.raymank26.model.telegram.TelegramMessage
 import com.github.raymank26.model.telegram.TelegramMessage.Text
 
 import akka.actor.{Actor, ActorContext, ActorRef, Props}
-import akka.event.Logging
+import akka.event.{Logging, LoggingAdapter}
 
 import scala.collection.immutable.HashMap
 import scala.concurrent.Future
@@ -19,7 +19,7 @@ import scala.concurrent.Future
  */
 class CommandProcessor extends Actor with Utils {
 
-    val logger = Logging(context.system, this)
+    val logger: LoggingAdapter = Logging(context.system, this)
 
     import context.dispatcher
 
@@ -62,10 +62,12 @@ class CommandProcessor extends Actor with Utils {
         Telegram.sendMessage("Send to me your location firstly", chatId)
     }
 
-    private def sendForecast(sender: ActorRef, prefs: ForecastUserSettings,
-                             chatId: Int): Future[Unit] = Future {
+    private def sendForecast(sender: ActorRef, prefs: GeoPrefs,
+                             chatId: Int): Future[Unit] = runAsFuture(logger) {
 
         val forecast = Forecast.getCurrentForecast(prefs)
+        val previews = Webcams.getLinks(prefs)
+        Telegram.sendWebcamPreviews(previews, chatId)
         Telegram.sendMessage(CommandProcessor.makeForecastMessage(forecast), chatId)
     }
 

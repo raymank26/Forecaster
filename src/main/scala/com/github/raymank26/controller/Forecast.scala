@@ -19,7 +19,7 @@ object Forecast {
         typesafeConfig.getString(s"forecaster.forecast.api-key")
     }
 
-    def getCurrentForecast(settings: ForecastUserSettings) = {
+    def getCurrentForecast(settings: GeoPrefs) = {
         parseResponse(makeRequest(settings).body)
     }
 
@@ -27,16 +27,17 @@ object Forecast {
         body.parseJson.convertTo[Weather]
     }
 
-    private def makeRequest(settings: ForecastUserSettings) = {
+    private def makeRequest(settings: GeoPrefs) = {
         val url = s"""https://api.forecast.io/
                      |forecast/$forecastApiKey/${settings.latitude},${settings.longitude}"""
             .stripMargin.replace("\n", "")
+
         scalaj.http.Http(url)
             .param("units", "si")
             .param("lang", "ru")
             .asString
     }
 
-    case class ForecastUserSettings(latitude: Double, longitude: Double)
+    case class GeoPrefs(latitude: Double, longitude: Double)
 
 }
