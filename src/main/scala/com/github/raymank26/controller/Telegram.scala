@@ -2,16 +2,12 @@ package com.github.raymank26.controller
 
 import com.github.raymank26.ConfigManager
 
-import com.typesafe.config.ConfigFactory
-
 import scalaj.http.Http
 
 /**
  * @author Anton Ermak
  */
 object Telegram {
-
-    private val config = ConfigFactory.load()
 
     def sendMessage(text: String, chatId: Int): Unit = {
         sendRequest("sendMessage", Map(
@@ -26,7 +22,6 @@ object Telegram {
             .postForm
             .asString
             .body
-
     }
 
 }

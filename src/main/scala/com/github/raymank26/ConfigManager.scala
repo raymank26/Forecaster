@@ -11,4 +11,8 @@ object ConfigManager {
 
     def getBotId: String = config.getString("forecaster.telegram.api-key")
 
+    def getWebcamApiKey: String = {
+        config.getString("forecaster.webcams.api-key")
+    }
+
 }
