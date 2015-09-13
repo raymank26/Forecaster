@@ -28,6 +28,19 @@ object Database {
         }
     }
 
+    /**
+     * Saves forecast preferences
+     *
+     * @param telegramUser telegram user
+     * @param forecastUserSettings settings to save
+     */
+    def saveOrUpdateForecastPreferences(telegramUser: TelegramUser,
+                                        forecastUserSettings: GeoPrefs): Unit = {
+
+        val userId = getUserOrSave(telegramUser)
+        saveOrUpdateForecastPreferences(userId, forecastUserSettings)
+    }
+
     private def getForecastPreferences(userId: Int): Option[(Int, GeoPrefs)] = {
         DB readOnly { implicit session =>
             sql"select id, latitude, longitude from $Preferences where user_id = ?"
@@ -50,19 +63,6 @@ object Database {
                 .single()
                 .apply()
         }
-    }
-
-    /**
-     * Saves forecast preferences
-     *
-     * @param telegramUser telegram user
-     * @param forecastUserSettings settings to save
-     */
-    def saveOrUpdateForecastPreferences(telegramUser: TelegramUser,
-                                        forecastUserSettings: GeoPrefs): Unit = {
-
-        val userId = getUserOrSave(telegramUser)
-        saveOrUpdateForecastPreferences(userId, forecastUserSettings)
     }
 
     private def getUserOrSave(telegramUser: TelegramUser): Int = {

@@ -29,14 +29,14 @@ class MessageDispatcher extends Actor with Utils {
         case msg => messageNotSupported(msg)
     }
 
+    override def supervisorStrategy: SupervisorStrategy = OneForOneStrategy() {
+        case _: Exception => Stop
+    }
+
     private def unsupportedMessage(msg: TelegramMessage): Unit = {
         logger.warning(s"no such handler for $msg")
         Telegram.sendMessage("I don't understand you", msg.from.chatId)
 
-    }
-
-    override def supervisorStrategy: SupervisorStrategy = OneForOneStrategy() {
-        case _: Exception => Stop
     }
 }
 

@@ -28,9 +28,10 @@ object Forecast {
     }
 
     private def makeRequest(settings: GeoPrefs) = {
-        val url = s"""https://api.forecast.io/
-                     |forecast/$forecastApiKey/${settings.latitude},${settings.longitude}"""
-            .stripMargin.replace("\n", "")
+        val url =
+            s"""https://api.forecast.io/
+               |forecast/$forecastApiKey/${settings.latitude},${settings.longitude}"""
+                .stripMargin.replace("\n", "")
 
         scalaj.http.Http(url)
             .param("units", "si")
