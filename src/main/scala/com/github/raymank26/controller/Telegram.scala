@@ -3,7 +3,7 @@ package com.github.raymank26.controller
 import com.github.raymank26.ConfigManager
 import com.github.raymank26.model.webcams.WebcamPreviewList
 
-import scalaj.http.Http
+import scalaj.http.{Http, MultiPart}
 
 /**
  * @author Anton Ermak
@@ -12,24 +12,29 @@ object Telegram {
 
     def sendWebcamPreviews(previews: WebcamPreviewList, chatId: Int): Unit = {
         previews.webcams.foreach { webcam =>
-            sendMessage(webcam.title, chatId)
-            sendMessage(webcam.previewUrl, chatId)
+            sendPhoto(downloadFromUrl(webcam.previewUrl), webcam.title, chatId)
         }
     }
 
+    private def sendPhoto(content: Array[Byte], caption: String, chatId: Int): Unit = {
+        val part = MultiPart("photo", "photo.jpg", "image/jpeg", content)
+        prepareRequest("sendPhoto", Map("caption" -> caption, "chat_id" -> chatId.toString))
+            .postMulti(part)
+            .asString
+    }
+
+    private def prepareRequest(methodName: String, content: Map[String, String]) = {
+        Http(s"https://api.telegram.org/${ConfigManager.getBotId}/$methodName").params(content)
+    }
+
+    private def downloadFromUrl(url: String): Array[Byte] = {
+        Http(url).asBytes.body
+    }
+
     def sendMessage(text: String, chatId: Int): Unit = {
-        sendRequest("sendMessage", Map(
+        prepareRequest("sendMessage", Map(
             "chat_id" -> chatId.toString,
             "text" -> text
-        ))
+        )).postForm.asString
     }
-
-    private def sendRequest(methodName: String, content: Map[String, String]): String = {
-        Http(s"https://api.telegram.org/${ConfigManager.getBotId}/$methodName")
-            .params(content)
-            .postForm
-            .asString
-            .body
-    }
-
 }

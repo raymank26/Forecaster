@@ -20,7 +20,7 @@ object Webcams {
     /**
      * How many previews should be sent to user. This value should be in range 0 < x <= 20
      */
-    private val MaximumNumber = 5
+    private val MaximumNumber = 2
 
     private val defaultParams = HashMap(
         "method" -> "wct.webcams.list_nearby",

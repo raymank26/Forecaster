@@ -36,12 +36,11 @@ class SettingsActor extends Actor with Utils {
         }
     }
 
-    private def saveLocation(location: TelegramMessage.Location, user: TelegramUser) = {
-        Future {
+    private def saveLocation(location: TelegramMessage.Location, user: TelegramUser): Future[Unit] =
+        runAsFuture(logger) {
             Database.saveOrUpdateForecastPreferences(user,
                 GeoPrefs(location.latitude, location.longitude))
         }
-    }
 }
 
 object SettingsActor {

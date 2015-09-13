@@ -46,19 +46,16 @@ class CommandProcessor extends Actor with Utils {
         val sendTo = sender()
         val chatId = from.chatId
 
-        val forecastFuture = Future {
+        val forecastFuture = runAsFuture(logger) {
             Database.getForecastPreferences(from)
         }
         forecastFuture.onSuccess {
             case Some(prefs) => sendForecast(sendTo, prefs, chatId)
             case None => preferencesRequired(sendTo, chatId)
         }
-        forecastFuture.onFailure {
-            case exception: Throwable => logger.error(exception, "error")
-        }
     }
 
-    private def preferencesRequired(sender: ActorRef, chatId: Int) = Future {
+    private def preferencesRequired(sender: ActorRef, chatId: Int) = runAsFuture(logger) {
         Telegram.sendMessage("Send to me your location firstly", chatId)
     }
 
