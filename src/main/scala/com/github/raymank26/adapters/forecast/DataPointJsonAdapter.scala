@@ -24,7 +24,9 @@ object DataPointJsonAdapter extends RootJsonReader[DataPoint] {
             precipitationType = jsonObject.get("precipType").map(
                 _.convertTo[PrecipitationType](PrecipitationReader)),
             temperature = jsonObject("temperature").convertTo[Double],
-            apparentTemperature = jsonObject("apparentTemperature").convertTo[Double]
+            apparentTemperature = jsonObject("apparentTemperature").convertTo[Double],
+            precipitationProbability = jsonObject("precipProbability").convertTo[Double],
+            windSpeed = jsonObject("windSpeed").convertTo[Double]
         )
     }
 

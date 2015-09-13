@@ -13,7 +13,9 @@ case class DataPoint(time: DateTime,
                      icon: Icon,
                      precipitationType: Option[PrecipitationType],
                      temperature: Double,
-                     apparentTemperature: Double)
+                     apparentTemperature: Double,
+                     precipitationProbability: Double,
+                     windSpeed: Double)
 
 object DataPoint {
 

@@ -35,7 +35,7 @@ object Forecast {
 
         scalaj.http.Http(url)
             .param("units", "si")
-            .param("lang", "ru")
+            .param("lang", "en")
             .asString
     }
 

@@ -4,6 +4,7 @@ import com.github.raymank26.actor.CommandProcessor.HelpMessage
 import com.github.raymank26.controller.Forecast.GeoPrefs
 import com.github.raymank26.controller.{Forecast, Telegram, Webcams}
 import com.github.raymank26.db.Database
+import com.github.raymank26.model.forecast.DataPoint.IconType._
 import com.github.raymank26.model.forecast.Weather
 import com.github.raymank26.model.telegram.TelegramMessage
 import com.github.raymank26.model.telegram.TelegramMessage.Text
@@ -82,13 +83,42 @@ object CommandProcessor {
           |3. /settings - redefine settings
           |The author is @antonermak.
         """.stripMargin
+    private val SnowSymbol = '\u2744'
+    private val RainRymbol = '\u2614'
 
     def apply(context: ActorContext): ActorRef = context.actorOf(Props[CommandProcessor])
 
     private def makeForecastMessage(forecast: Weather): String = {
+        val icon = serializeIcon(forecast.currently.icon)
         s"""
-           |The current forecast is ${forecast.currently.temperature}
+           | ${forecast.currently.summary} $icon.
+                                                  |- temp is ${forecast.currently.temperature} °C;
+                                                                                                |- apparent temp is ${
+            forecast.currently.apparentTemperature
+        } °C;
+           |- wind speed ${forecast.currently.windSpeed} m/s.
          """.stripMargin
+    }
+
+    private def serializeIcon(icon: Icon): String = {
+
+        icon match {
+
+            case Rain => RainRymbol.toString
+
+            case ClearDay => "\uD83C\uDF1D"
+
+            case ClearNight => "\uD83C\uDF1A"
+
+            case Cloudy => "\u2601"
+
+            case Snow => SnowSymbol.toString
+
+            case Sleet => (SnowSymbol + RainRymbol).toString
+
+            case _ => ""
+        }
+
     }
 
     case class TelegramResponse(value: String)
