@@ -20,6 +20,7 @@ object WebcamPreviewListAdapter extends RootJsonReader[WebcamPreviewList] {
     private def parseWebcamItem(item: JsValue) = {
         val webcam = item.asJsObject.fields
         Webcam(title = webcam("title").convertTo[String],
-            previewUrl = webcam("preview_url").convertTo[String])
+            previewUrl = webcam("preview_url").convertTo[String],
+            id = webcam("webcamid").convertTo[String])
     }
 }

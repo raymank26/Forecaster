@@ -1,7 +1,10 @@
 package com.github.raymank26.controller
 
 import com.github.raymank26.ConfigManager
+import com.github.raymank26.adapters.telegram.TelegramKeyboardAdapter
 import com.github.raymank26.model.webcams.WebcamPreviewList
+
+import spray.json._
 
 import scalaj.http.{Http, MultiPart}
 
@@ -10,6 +13,8 @@ import scalaj.http.{Http, MultiPart}
  */
 object Telegram {
 
+    implicit val telegramKeyboardAdapter = TelegramKeyboardAdapter
+
     def sendWebcamPreviews(previews: WebcamPreviewList, chatId: Int): Unit = {
         previews.webcams.foreach { webcam =>
             sendPhoto(downloadFromUrl(webcam.previewUrl), webcam.title, chatId)
@@ -17,10 +22,24 @@ object Telegram {
     }
 
     def sendMessage(text: String, chatId: Int): Unit = {
-        prepareRequest("sendMessage", Map(
+        prepareSendMessage(text, chatId)
+            .asString
+            .body
+    }
+
+    def sendMessage(text: String, chatId: Int, replyKeyboard: Keyboard): Unit = {
+        prepareSendMessage(text, chatId)
+            .param("reply_markup", replyKeyboard.toJson.compactPrint)
+            .asString
+            .body
+    }
+
+    private def prepareSendMessage(text: String, chatId: Int) = {
+        val params: Map[String, String] = Map(
             "chat_id" -> chatId.toString,
             "text" -> text
-        )).postForm.asString
+        )
+        prepareRequest("sendMessage", params).postForm
     }
 
     private def sendPhoto(content: Array[Byte], caption: String, chatId: Int): Unit = {
@@ -37,4 +56,7 @@ object Telegram {
     private def downloadFromUrl(url: String): Array[Byte] = {
         Http(url).asBytes.body
     }
+
+    case class Keyboard(buttons: Seq[Seq[String]], oneTimeKeyboard: Boolean)
+
 }

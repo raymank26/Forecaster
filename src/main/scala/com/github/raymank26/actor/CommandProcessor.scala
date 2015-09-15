@@ -18,7 +18,7 @@ import scala.concurrent.Future
 /**
  * @author Anton Ermak
  */
-class CommandProcessor extends Actor with Utils {
+private class CommandProcessor extends Actor with Utils {
 
     val logger: LoggingAdapter = Logging(context.system, this)
 
@@ -26,7 +26,9 @@ class CommandProcessor extends Actor with Utils {
 
     val commands: Map[String, TelegramMessage => Unit] = HashMap(
         "/current" -> processCurrent _,
-        "/help" -> processHelp _
+        "/help" -> processHelp _,
+        "/settings" -> processSettings _,
+        "/start" -> processSettings _
     )
 
     override def receive: Receive = {
@@ -40,6 +42,10 @@ class CommandProcessor extends Actor with Utils {
             }
 
         case msg => messageNotSupported(msg)
+    }
+
+    private def processSettings(msg: TelegramMessage): Unit = {
+        sender() ! MessageDispatcher.WantSettings(msg.from.chatId)
     }
 
     private def processCurrent(msg: TelegramMessage): Unit = {
@@ -90,14 +96,14 @@ object CommandProcessor {
 
     private def makeForecastMessage(forecast: Weather): String = {
         val icon = serializeIcon(forecast.currently.icon)
+        // @formatter:off
         s"""
-           | ${forecast.currently.summary} $icon.
-                                                  |- temp is ${forecast.currently.temperature} °C;
-                                                                                                |- apparent temp is ${
-            forecast.currently.apparentTemperature
-        } °C;
+           |${forecast.currently.summary} $icon
+           |- temp is ${forecast.currently.temperature} °C;
+           |- apparent temp is ${forecast.currently.apparentTemperature} °C;
            |- wind speed ${forecast.currently.windSpeed} m/s.
          """.stripMargin
+        // @formatter: on
     }
 
     private def serializeIcon(icon: Icon): String = {

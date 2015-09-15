@@ -1,5 +1,6 @@
 package com.github.raymank26.db
 
+import com.github.raymank26.actor.SettingsFSM
 import com.github.raymank26.controller.Forecast.GeoPrefs
 import com.github.raymank26.model.telegram.TelegramUser
 
@@ -27,6 +28,8 @@ object Database {
             getForecastPreferences(userId).map(_._2)
         }
     }
+
+    def saveSettings(data: SettingsFSM.Data) = ???
 
     /**
      * Saves forecast preferences
@@ -71,8 +74,9 @@ object Database {
 
     private def saveUser(user: TelegramUser): Int = {
         DB localTx { implicit session =>
-            sql"""insert into $Users (username, user_id) values (?, ?)""".bind(user.username,
-                user.chatId).update().apply()
+            sql"""insert into $Users (username, user_id) values (${user.username }, ${user.chatId })"""
+                .update(
+                .apply()
         }
     }
 
@@ -81,10 +85,16 @@ object Database {
         getForecastPreferences(userId) match {
             case Some((id, _)) => updateForecastPreferences(id, forecastUserSettings)
             case None =>
+                val latitude = forecastUserSettings.latitude
+                val longitude = forecastUserSettings.longitude
                 DB localTx { implicit session =>
-                    sql"insert into $Preferences(user_id, message_datetime, latitude, longitude) values (?, ?, ?, ?)"
-                        .bind(userId, DateTime.now, forecastUserSettings.latitude,
-                            forecastUserSettings.longitude).update().apply()
+                    //@formatter:off
+                    sql"""insert into $Preferences(user_id, message_datetime, latitude, longitude)
+                         |values ($userId, ${DateTime.now}, $latitude, $longitude)"""
+                        .stripMargin
+                        .update()
+                        .apply()
+                    //@formatter:on
                 }
         }
     }

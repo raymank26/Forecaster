@@ -7,7 +7,7 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
  * @author Anton Ermak
  */
-trait Utils {
+private trait Utils {
 
     def messageNotSupported(msg: Any): Unit =
         throw new IllegalStateException(s"no such handler for message $msg")

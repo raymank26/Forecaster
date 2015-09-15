@@ -26,5 +26,5 @@ object Main extends Api {
     }
 
     override def processRequest(telegramMessage: TelegramMessage): Unit =
-        MessageDispatcher() ! telegramMessage
+        MessageDispatcher.getInstance() ! telegramMessage
 }
