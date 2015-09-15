@@ -1,6 +1,7 @@
 package com.github.raymank26.db
 
 import com.github.raymank26.actor.SettingsFSM
+import com.github.raymank26.actor.SettingsFSM.Preferences.Builder
 import com.github.raymank26.controller.Forecast.GeoPrefs
 import com.github.raymank26.model.telegram.TelegramUser
 
@@ -23,45 +24,53 @@ object Database {
      * @param telegramUser user instance
      * @return forecast preferences option
      */
-    def getForecastPreferences(telegramUser: TelegramUser): Option[GeoPrefs] = {
+    def getPreferences(telegramUser: TelegramUser): Option[SettingsFSM.Preferences] = {
         getUserDbId(telegramUser).flatMap { userId =>
-            getForecastPreferences(userId).map(_._2)
+            getPreferences(userId).map(_._2)
         }
     }
-
-    def saveSettings(data: SettingsFSM.Data) = ???
 
     /**
      * Saves forecast preferences
      *
-     * @param telegramUser telegram user
-     * @param forecastUserSettings settings to save
+     * @param user telegram user
+     * @param prefs settings to save
      */
-    def saveOrUpdateForecastPreferences(telegramUser: TelegramUser,
-                                        forecastUserSettings: GeoPrefs): Unit = {
-
-        val userId = getUserOrSave(telegramUser)
-        saveOrUpdateForecastPreferences(userId, forecastUserSettings)
+    def saveSettings(user: TelegramUser, prefs: SettingsFSM.Preferences) = {
+        val userId = getUserOrSave(user)
+        saveOrUpdatePreferences(userId, prefs)
     }
 
-    private def getForecastPreferences(userId: Int): Option[(Int, GeoPrefs)] = {
+    private def getPreferences(userId: Int): Option[(Int, SettingsFSM.Preferences)] = {
         DB readOnly { implicit session =>
-            sql"select id, latitude, longitude from $Preferences where user_id = ?"
+            //@formatter:off
+            sql"""select id, latitude, longitude, language, webcams_ids
+                 |from $Preferences where user_id = ?""".stripMargin
                 .bind(userId)
                 .map(rs => mapRsToForecast(rs))
                 .single()
                 .apply()
+            //@formatter:on
         }
     }
 
-    private def mapRsToForecast(rs: WrappedResultSet): (Int, GeoPrefs) = {
-        (rs.int("id"), GeoPrefs(rs.double("latitude"), rs.double("longitude")))
+    private def mapRsToForecast(rs: WrappedResultSet): (Int, SettingsFSM.Preferences) = {
+        val builder = new Builder
+
+        builder.setLanguage(rs.string("language"))
+        builder.setGeo(GeoPrefs(rs.double("latitude"), rs.double("longitude")))
+
+        rs.array("webcams_ids").getArray.asInstanceOf[Array[String]].foreach { item =>
+            builder.addWebcam(item)
+        }
+
+        (rs.int("id"), builder.build())
     }
 
     private def getUserDbId(user: TelegramUser): Option[Int] = {
         DB readOnly { implicit session =>
-            sql"""select id from $Users where username = ?"""
-                .bind(user.username)
+            sql"""select id from $Users where user_id = ?"""
+                .bind(user.chatId)
                 .map(rs => rs.int("id"))
                 .single()
                 .apply()
@@ -74,23 +83,30 @@ object Database {
 
     private def saveUser(user: TelegramUser): Int = {
         DB localTx { implicit session =>
-            sql"""insert into $Users (username, user_id) values (${user.username }, ${user.chatId })"""
-                .update(
+            //@formatter:off
+            sql"""insert into $Users (username, user_id)
+                 |values (${user.username }, ${user.chatId})""".stripMargin
+                .update()
                 .apply()
+            //@formatter:on
         }
     }
 
-    private def saveOrUpdateForecastPreferences(userId: Int,
-                                                forecastUserSettings: GeoPrefs) = {
-        getForecastPreferences(userId) match {
-            case Some((id, _)) => updateForecastPreferences(id, forecastUserSettings)
+    private def saveOrUpdatePreferences(userId: Int,
+                                        prefs: SettingsFSM.Preferences) = {
+        getPreferences(userId) match {
+            case Some((id, _)) => updatePreferences(id, prefs)
             case None =>
-                val latitude = forecastUserSettings.latitude
-                val longitude = forecastUserSettings.longitude
+                val latitude = prefs.geo.latitude
+                val longitude = prefs.geo.longitude
+                val language = prefs.language
+                val webcams = prefs.webcams.toArray
                 DB localTx { implicit session =>
                     //@formatter:off
-                    sql"""insert into $Preferences(user_id, message_datetime, latitude, longitude)
-                         |values ($userId, ${DateTime.now}, $latitude, $longitude)"""
+                    sql"""insert into $Preferences
+                         |(user_id, message_datetime, latitude, longitude, language, webcams_ids)
+                         |values ($userId, ${DateTime.now}, $latitude, $longitude, $language::lang,
+                         |${session.connection.createArrayOf("varchar", webcams.toArray)})"""
                         .stripMargin
                         .update()
                         .apply()
@@ -99,13 +115,20 @@ object Database {
         }
     }
 
-    private def updateForecastPreferences(rowId: Int,
-                                          forecastUserSettings: GeoPrefs) = {
+    private def updatePreferences(rowId: Int,
+                                  prefs: SettingsFSM.Preferences) = {
         DB localTx { implicit session =>
-            sql"update $Preferences set latitude = ?, longitude = ? where id = ?"
-                .bind(forecastUserSettings.latitude, forecastUserSettings.longitude, rowId)
+            //@formatter:off
+            sql"""|update $Preferences set
+                  |latitude = ${prefs.geo.latitude},
+                  |longitude = ${prefs.geo.longitude},
+                  |language = ${prefs.language}::lang,
+                  |webcams_ids = ${session.connection.createArrayOf("varchar", prefs.webcams.toArray)}
+                  |where id = $rowId"""
+                .stripMargin
                 .update()
                 .apply()
+            //@formatter:on
         }
     }
 }

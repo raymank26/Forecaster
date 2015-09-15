@@ -19,7 +19,7 @@ object Forecast {
         typesafeConfig.getString(s"forecaster.forecast.api-key")
     }
 
-    def getCurrentForecast(settings: GeoPrefs) = {
+    def getCurrentForecast(settings: GeoPrefs, lang: String) = {
         parseResponse(makeRequest(settings).body)
     }
 

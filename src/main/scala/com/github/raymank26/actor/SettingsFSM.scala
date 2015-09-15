@@ -1,17 +1,18 @@
 package com.github.raymank26.actor
 
 import com.github.raymank26.actor.MessageDispatcher.SettingsSaved
-import com.github.raymank26.actor.SettingsFSM.{Data, OnEnd, OnHello, OnLocation, OnWebcam, SavingStates, Talker}
+import com.github.raymank26.actor.SettingsFSM.Preferences.Builder
+import com.github.raymank26.actor.SettingsFSM.{Conversation, OnEnd, OnHello, OnLocation, OnWebcam, Preferences, SettingsState}
 import com.github.raymank26.controller.Forecast.GeoPrefs
 import com.github.raymank26.controller.Telegram.Keyboard
-import com.github.raymank26.controller.{Forecast, Telegram, Webcams}
+import com.github.raymank26.controller.{Telegram, Webcams}
 import com.github.raymank26.db.Database
-import com.github.raymank26.model.telegram.TelegramMessage
 import com.github.raymank26.model.telegram.TelegramMessage.{Location, Text}
+import com.github.raymank26.model.telegram.{TelegramMessage, TelegramUser}
 import com.github.raymank26.model.webcams.WebcamPreviewList
 
 import akka.actor.FSM.Normal
-import akka.actor.{Actor, ActorContext, FSM, Props}
+import akka.actor.{Actor, ActorContext, ActorRef, FSM, Props}
 
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
@@ -19,21 +20,20 @@ import scala.util.Try
 /**
  * @author Anton Ermak.
  */
-class SettingsFSM(chatId: Int) extends Actor with FSM[SavingStates, Data] {
+class SettingsFSM(chatId: Int, parent: ActorRef) extends Actor with FSM[SettingsState, Preferences.Builder] {
 
-    private val conversation = new Talker(chatId)
-    private val parent = sender()
+    private val conversation = new Conversation(chatId)
     private var webcams: WebcamPreviewList = _
 
-    startWith(OnHello, new Data())
+    startWith(OnHello, new Builder)
 
-    conversation.sayHello()
+    conversation.sendHello()
 
     // waiting for location
     when(OnHello) {
         case Event(msg: TelegramMessage, data) if msg.isLocation =>
             val location = msg.content.asInstanceOf[Location]
-            data.geo = GeoPrefs(location.latitude, location.longitude)
+            data.setGeo(GeoPrefs(location.latitude, location.longitude))
             goto(OnLocation).using(data)
         case _ => repeat()
     }
@@ -41,7 +41,7 @@ class SettingsFSM(chatId: Int) extends Actor with FSM[SavingStates, Data] {
     // waiting for language
     when(OnLocation) {
         case Event(msg: TelegramMessage, data) if getLanguage(msg).isDefined =>
-            data.language = getLanguage(msg).get
+            data.setLanguage(getLanguage(msg).get)
             goto(OnWebcam).using(data)
         case _ => repeat()
     }
@@ -51,11 +51,12 @@ class SettingsFSM(chatId: Int) extends Actor with FSM[SavingStates, Data] {
         case Event(msg: TelegramMessage, data) =>
             getWebcamIdentifier(msg) match {
                 case Right(None) =>
-                    self ! "Stop"
+                    self ! msg.from
                     goto(OnEnd)
                 case Right(Some(num)) =>
                     if (num < webcams.webcams.length) {
-                        data.webcams += webcams.webcams(num).id
+                        data.addWebcam(webcams.webcams(num).id)
+                        conversation.requestAnotherWebcam()
                         stay()
                     } else {
                         repeat()
@@ -67,21 +68,21 @@ class SettingsFSM(chatId: Int) extends Actor with FSM[SavingStates, Data] {
 
     // saving settings. Listen to self
     when(OnEnd) {
-        case Event("Stop", data) =>
+        case Event(user: TelegramUser, data) =>
             parent ! SettingsSaved(chatId)
-            Database.saveSettings(data)
+            Database.saveSettings(user, data.build())
             stop(Normal)
     }
 
     onTransition {
-        case OnHello -> OnLocation => conversation.sayLanguage()
+        case OnHello -> OnLocation => conversation.sendLanguageQuestion()
         case OnLocation -> OnWebcam =>
             webcams = SettingsFSM.loadWebcams(stateData.geo)
-            conversation.sayWebcam(webcams)
+            conversation.sayWebcamsQuestion(webcams)
         case OnWebcam -> OnEnd =>
             conversation.sayGoodbye()
         // remove actor. Notify watcher
-        case from -> to if from == to => conversation.sayRetry(from)
+        case from -> to if from == to => conversation.sendRetry(from)
         case a -> b => log.warning(s"No transition from $a to $b")
     }
 
@@ -112,35 +113,35 @@ class SettingsFSM(chatId: Int) extends Actor with FSM[SavingStates, Data] {
 
 object SettingsFSM {
 
-    def apply(chatId: Int, context: ActorContext) = {
-        context.actorOf(Props(classOf[SettingsFSM], chatId))
+    def apply(chatId: Int, parent: ActorRef, context: ActorContext) = {
+        context.actorOf(Props(classOf[SettingsFSM], chatId, parent))
     }
 
     private def loadWebcams(geo: GeoPrefs): WebcamPreviewList = Webcams.getLinks(geo)
 
-    sealed trait SavingStates
+    sealed trait SettingsState
 
-    case class Data() {
-        var language: String = _
-        var geo: Forecast.GeoPrefs = _
-        var webcams: ArrayBuffer[String] = new ArrayBuffer()
-    }
+    case class Preferences private(language: String, geo: GeoPrefs, webcams: Seq[String])
 
-    private class Talker(chatId: Int) {
+    private class Conversation(chatId: Int) {
 
-        def sayHello(): Unit =
+        def sendHello(): Unit =
             Telegram.sendMessage("Hi! Let's send me your location settings", chatId)
 
-        def sayRetry(state: SavingStates): Unit = {
+        def sendRetry(state: SettingsState): Unit = {
             Telegram.sendMessage("Try another one", chatId)
         }
 
-        def sayLanguage(): Unit =
+        def requestAnotherWebcam(): Unit = {
+            Telegram.sendMessage("Another one?", chatId)
+        }
+
+        def sendLanguageQuestion(): Unit =
             Telegram.sendMessage("The next is language", chatId,
                 replyKeyboard = Keyboard(buttons = Seq(Seq("en", "ru")),
                     oneTimeKeyboard = true))
 
-        def sayWebcam(webcams: WebcamPreviewList): Unit = {
+        def sayWebcamsQuestion(webcams: WebcamPreviewList): Unit = {
             val len = webcams.webcams.length
             val keyboardButtons = Seq
                 .iterate(0, len) { _ + 1 }
@@ -150,7 +151,7 @@ object SettingsFSM {
                 .toSeq
             Telegram.sendWebcamPreviews(webcams, chatId)
             Telegram.sendMessage("Which one?", chatId,
-                replyKeyboard = Keyboard(keyboardButtons, oneTimeKeyboard = false))
+                replyKeyboard = Keyboard(keyboardButtons, oneTimeKeyboard = true))
         }
 
         def sayGoodbye(): Unit = {
@@ -158,14 +159,44 @@ object SettingsFSM {
         }
     }
 
-    case object OnHello extends SavingStates
 
-    case object OnLocation extends SavingStates
+    object Preferences {
 
-    case object OnLanguage extends SavingStates
+        class Builder() {
+            var geo: GeoPrefs = _
+            private var language: String = _
+            private var webcams = ArrayBuffer[String]()
 
-    case object OnWebcam extends SavingStates
+            def setLanguage(language: String): Builder = {
+                this.language = language
+                this
+            }
 
-    case object OnEnd extends SavingStates
+            def setGeo(geo: GeoPrefs): Builder = {
+                this.geo = geo
+                this
+            }
+
+            def addWebcam(id: String) = {
+                webcams += id
+                this
+            }
+
+            def build(): Preferences = {
+                Preferences(language, geo, webcams.toSeq)
+            }
+        }
+
+    }
+
+    case object OnHello extends SettingsState
+
+    case object OnLocation extends SettingsState
+
+    case object OnLanguage extends SettingsState
+
+    case object OnWebcam extends SettingsState
+
+    case object OnEnd extends SettingsState
 
 }

@@ -20,8 +20,6 @@ class MessageDispatcher extends Actor with Utils {
 
     private val commandRouter = context.actorOf(RoundRobinPool(5).props(Props[CommandProcessor]),
         "command-router")
-    private val settingsRouter = context.actorOf(RoundRobinPool(5).props(Props[SettingsActor]),
-        "settings-router")
 
     private val inSettings: mutable.Map[Int, ActorRef] = collection.mutable.Map.empty[Int, ActorRef]
 
@@ -35,12 +33,11 @@ class MessageDispatcher extends Actor with Utils {
 
         case msg: TelegramMessage => msg.content match {
             case txt: TelegramMessage.Text if txt.text.startsWith("/") => commandRouter ! msg
-            case location: TelegramMessage.Location => settingsRouter ! msg
             case _ => unsupportedMessage(msg)
         }
 
         case WantSettings(chatId) =>
-            inSettings(chatId) = SettingsFSM.apply(chatId, context)
+            inSettings(chatId) = SettingsFSM.apply(chatId, self, context)
 
         case msg => messageNotSupported(msg)
     }

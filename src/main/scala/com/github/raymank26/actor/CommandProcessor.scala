@@ -1,7 +1,6 @@
 package com.github.raymank26.actor
 
 import com.github.raymank26.actor.CommandProcessor.HelpMessage
-import com.github.raymank26.controller.Forecast.GeoPrefs
 import com.github.raymank26.controller.{Forecast, Telegram, Webcams}
 import com.github.raymank26.db.Database
 import com.github.raymank26.model.forecast.DataPoint.IconType._
@@ -18,7 +17,7 @@ import scala.concurrent.Future
 /**
  * @author Anton Ermak
  */
-private class CommandProcessor extends Actor with Utils {
+class CommandProcessor extends Actor with Utils {
 
     val logger: LoggingAdapter = Logging(context.system, this)
 
@@ -54,7 +53,7 @@ private class CommandProcessor extends Actor with Utils {
         val chatId = from.chatId
 
         val forecastFuture = runAsFuture(logger) {
-            Database.getForecastPreferences(from)
+            Database.getPreferences(from)
         }
         forecastFuture.onSuccess {
             case Some(prefs) => sendForecast(sendTo, prefs, chatId)
@@ -66,11 +65,11 @@ private class CommandProcessor extends Actor with Utils {
         Telegram.sendMessage("Send to me your location firstly", chatId)
     }
 
-    private def sendForecast(sender: ActorRef, prefs: GeoPrefs,
+    private def sendForecast(sender: ActorRef, prefs: SettingsFSM.Preferences,
                              chatId: Int): Future[Unit] = runAsFuture(logger) {
 
-        val forecast = Forecast.getCurrentForecast(prefs)
-        val previews = Webcams.getLinks(prefs)
+        val forecast = Forecast.getCurrentForecast(prefs.geo, prefs.language)
+        val previews = Webcams.getLinks(prefs.geo, prefs.webcams)
         Telegram.sendWebcamPreviews(previews, chatId)
         Telegram.sendMessage(CommandProcessor.makeForecastMessage(forecast), chatId)
     }
