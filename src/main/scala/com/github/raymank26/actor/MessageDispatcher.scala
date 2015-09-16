@@ -14,7 +14,7 @@ import scala.collection.mutable
 /**
  * @author Anton Ermak
  */
-class MessageDispatcher extends Actor with Utils {
+private class MessageDispatcher extends Actor with Utils {
 
     private val logger = Logging(context.system, this)
 
@@ -37,7 +37,7 @@ class MessageDispatcher extends Actor with Utils {
         }
 
         case WantSettings(chatId) =>
-            inSettings(chatId) = SettingsFSM.apply(chatId, self, context)
+            inSettings(chatId) = SettingsFSM(chatId, self, context)
 
         case msg => messageNotSupported(msg)
     }
@@ -53,7 +53,7 @@ class MessageDispatcher extends Actor with Utils {
     }
 }
 
-object MessageDispatcher {
+private[actor] object MessageDispatcher {
 
     private var instance: Option[ActorRef] = None
 

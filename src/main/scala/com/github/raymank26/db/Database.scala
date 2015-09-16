@@ -11,32 +11,20 @@ import scalikejdbc._
 /**
  * @author Anton Ermak
  */
-object Database {
+object Database extends PreferencesProvider {
 
     private val Users = sqls"users"
     private val Preferences = sqls"preferences"
 
     HikariDb.setSession()
 
-    /**
-     * Returns forecast preferences of [[TelegramUser]] instance if possible.
-     *
-     * @param telegramUser user instance
-     * @return forecast preferences option
-     */
-    def getPreferences(telegramUser: TelegramUser): Option[SettingsFSM.Preferences] = {
+    override def getPreferences(telegramUser: TelegramUser): Option[SettingsFSM.Preferences] = {
         getUserDbId(telegramUser).flatMap { userId =>
             getPreferences(userId).map(_._2)
         }
     }
 
-    /**
-     * Saves forecast preferences
-     *
-     * @param user telegram user
-     * @param prefs settings to save
-     */
-    def saveSettings(user: TelegramUser, prefs: SettingsFSM.Preferences) = {
+    override def savePreferences(user: TelegramUser, prefs: SettingsFSM.Preferences) = {
         val userId = getUserOrSave(user)
         saveOrUpdatePreferences(userId, prefs)
     }
