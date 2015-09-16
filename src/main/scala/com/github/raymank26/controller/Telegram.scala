@@ -13,7 +13,7 @@ import scalaj.http.{Http, MultiPart}
  */
 object Telegram {
 
-    implicit val telegramKeyboardAdapter = TelegramKeyboardAdapter
+    private implicit val telegramKeyboardAdapter = TelegramKeyboardAdapter
 
     def sendWebcamPreviews(previews: WebcamPreviewList, chatId: Int): Unit = {
         previews.webcams.foreach { webcam =>
@@ -21,8 +21,15 @@ object Telegram {
         }
     }
 
+    def sendMessageAndPreserveKeyboard(text: String, chatId: Int): Unit = {
+        prepareSendMessage(text, chatId)
+            .asString
+            .body
+    }
+
     def sendMessage(text: String, chatId: Int): Unit = {
         prepareSendMessage(text, chatId)
+            .param("reply_markup", JsObject("hide_keyboard" -> JsBoolean(true)).compactPrint)
             .asString
             .body
     }
@@ -50,7 +57,7 @@ object Telegram {
     }
 
     private def prepareRequest(methodName: String, content: Map[String, String]) = {
-        Http(s"https://api.telegram.org/${ConfigManager.getBotId}/$methodName").params(content)
+        Http(s"https://api.telegram.org/${ConfigManager.getBotId }/$methodName").params(content)
     }
 
     private def downloadFromUrl(url: String): Array[Byte] = {

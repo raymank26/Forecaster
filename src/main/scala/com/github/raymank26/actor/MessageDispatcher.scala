@@ -14,7 +14,7 @@ import scala.collection.mutable
 /**
  * @author Anton Ermak
  */
-private class MessageDispatcher extends Actor with Utils {
+private final class MessageDispatcher extends Actor with Utils {
 
     private val logger = Logging(context.system, this)
 

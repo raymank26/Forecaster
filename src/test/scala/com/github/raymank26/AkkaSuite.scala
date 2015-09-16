@@ -18,4 +18,3 @@ class AkkaSuite extends TestKit(ActorSystem("system"))
         shutdown()
     }
 }
-

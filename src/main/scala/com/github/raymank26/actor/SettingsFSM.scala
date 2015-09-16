@@ -130,8 +130,6 @@ object SettingsFSM {
             preferencesProvider))
     }
 
-    private def loadWebcams(geo: GeoPrefs): WebcamPreviewList = Webcams.getLinks(geo)
-
     sealed trait SettingsState
 
     class WebcamProvider extends (GeoPrefs => WebcamPreviewList) {
@@ -148,7 +146,7 @@ object SettingsFSM {
         }
 
         def requestAnotherWebcam(): Unit = {
-            Telegram.sendMessage("Another one?", chatId)
+            Telegram.sendMessageAndPreserveKeyboard("Another one?", chatId)
         }
 
         def requestLanguage(): Unit =

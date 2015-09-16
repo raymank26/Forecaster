@@ -18,13 +18,13 @@ import scala.concurrent.Future
 /**
  * @author Anton Ermak
  */
-class CommandProcessor extends Actor with Utils {
+private final class CommandProcessor extends Actor with Utils {
 
     val logger: LoggingAdapter = Logging(context.system, this)
 
     import context.dispatcher
 
-    val commands: Map[String, TelegramMessage => Unit] = HashMap(
+    private val commands: Map[String, TelegramMessage => Unit] = HashMap(
         "/current" -> processCurrent _,
         "/help" -> processHelp _,
         "/settings" -> processSettings _,
@@ -126,7 +126,4 @@ object CommandProcessor {
         }
 
     }
-
-    case class TelegramResponse(value: String)
-
 }
