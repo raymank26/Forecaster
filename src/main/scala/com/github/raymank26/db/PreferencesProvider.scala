@@ -1,6 +1,6 @@
 package com.github.raymank26.db
 
-import com.github.raymank26.actor.SettingsFSM
+import com.github.raymank26.model.Preferences
 import com.github.raymank26.model.telegram.TelegramUser
 
 /**
@@ -14,7 +14,7 @@ trait PreferencesProvider {
      * @param telegramUser user instance
      * @return forecast preferences option
      */
-    def getPreferences(telegramUser: TelegramUser): Option[SettingsFSM.Preferences]
+    def getPreferences(telegramUser: TelegramUser): Option[Preferences]
 
     /**
      * Saves forecast preferences
@@ -22,6 +22,6 @@ trait PreferencesProvider {
      * @param user telegram user
      * @param prefs settings to save
      */
-    def savePreferences(user: TelegramUser, prefs: SettingsFSM.Preferences)
+    def savePreferences(user: TelegramUser, prefs: Preferences)
 }
 

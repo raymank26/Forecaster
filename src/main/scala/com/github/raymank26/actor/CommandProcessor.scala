@@ -3,6 +3,7 @@ package com.github.raymank26.actor
 import com.github.raymank26.actor.CommandProcessor.HelpMessage
 import com.github.raymank26.controller.{Forecast, Telegram, Webcams}
 import com.github.raymank26.db.Database
+import com.github.raymank26.model.Preferences
 import com.github.raymank26.model.forecast.DataPoint.IconType._
 import com.github.raymank26.model.forecast.Weather
 import com.github.raymank26.model.telegram.TelegramMessage
@@ -65,7 +66,7 @@ class CommandProcessor extends Actor with Utils {
         Telegram.sendMessage("Send to me your location firstly", chatId)
     }
 
-    private def sendForecast(sender: ActorRef, prefs: SettingsFSM.Preferences,
+    private def sendForecast(sender: ActorRef, prefs: Preferences,
                              chatId: Int): Future[Unit] = runAsFuture(logger) {
 
         val forecast = Forecast.getCurrentForecast(prefs.geo, prefs.language)

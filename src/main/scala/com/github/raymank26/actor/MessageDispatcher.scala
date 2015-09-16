@@ -53,7 +53,7 @@ private class MessageDispatcher extends Actor with Utils {
     }
 }
 
-private[actor] object MessageDispatcher {
+object MessageDispatcher {
 
     private var instance: Option[ActorRef] = None
 

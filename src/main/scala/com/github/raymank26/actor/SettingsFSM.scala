@@ -1,12 +1,12 @@
 package com.github.raymank26.actor
 
 import com.github.raymank26.actor.MessageDispatcher.SettingsSaved
-import com.github.raymank26.actor.SettingsFSM.Preferences.Builder
 import com.github.raymank26.actor.SettingsFSM._
 import com.github.raymank26.controller.Forecast.GeoPrefs
 import com.github.raymank26.controller.Telegram.Keyboard
 import com.github.raymank26.controller.{Telegram, Webcams}
 import com.github.raymank26.db.{Database, PreferencesProvider}
+import com.github.raymank26.model.Preferences
 import com.github.raymank26.model.telegram.TelegramMessage.{Location, Text}
 import com.github.raymank26.model.telegram.{TelegramMessage, TelegramUser}
 import com.github.raymank26.model.webcams.WebcamPreviewList
@@ -14,7 +14,6 @@ import com.github.raymank26.model.webcams.WebcamPreviewList
 import akka.actor.FSM.Normal
 import akka.actor.{Actor, ActorRef, ActorRefFactory, FSM, Props}
 
-import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
 
 /**
@@ -27,7 +26,7 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
 
     private var webcams: WebcamPreviewList = _
 
-    startWith(OnHello, new Builder)
+    startWith(OnHello, new Preferences.Builder)
 
     conversation.sayHello()
 
@@ -135,8 +134,6 @@ object SettingsFSM {
 
     sealed trait SettingsState
 
-    case class Preferences private(language: String, geo: GeoPrefs, webcams: Seq[String])
-
     class WebcamProvider extends (GeoPrefs => WebcamPreviewList) {
         override def apply(v1: GeoPrefs): WebcamPreviewList = Webcams.getLinks(v1)
     }
@@ -174,34 +171,6 @@ object SettingsFSM {
 
         def sayGoodbye(): Unit = {
             Telegram.sendMessage("Saved! Try to use /current", chatId)
-        }
-    }
-
-    object Preferences {
-
-        class Builder() {
-            var geo: GeoPrefs = _
-            private var language: String = _
-            private var webcams = ArrayBuffer[String]()
-
-            def setLanguage(language: String): Builder = {
-                this.language = language
-                this
-            }
-
-            def setGeo(geo: GeoPrefs): Builder = {
-                this.geo = geo
-                this
-            }
-
-            def addWebcam(id: String) = {
-                webcams += id
-                this
-            }
-
-            def build(): Preferences = {
-                Preferences(language, geo, webcams.toSeq)
-            }
         }
     }
 

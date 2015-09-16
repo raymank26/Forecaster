@@ -1,8 +1,7 @@
 package com.github.raymank26.db
 
-import com.github.raymank26.actor.SettingsFSM
-import com.github.raymank26.actor.SettingsFSM.Preferences.Builder
 import com.github.raymank26.controller.Forecast.GeoPrefs
+import com.github.raymank26.model.Preferences
 import com.github.raymank26.model.telegram.TelegramUser
 
 import org.joda.time.DateTime
@@ -14,26 +13,26 @@ import scalikejdbc._
 object Database extends PreferencesProvider {
 
     private val Users = sqls"users"
-    private val Preferences = sqls"preferences"
+    private val PreferencesTableName = sqls"preferences"
 
     HikariDb.setSession()
 
-    override def getPreferences(telegramUser: TelegramUser): Option[SettingsFSM.Preferences] = {
+    override def getPreferences(telegramUser: TelegramUser): Option[Preferences] = {
         getUserDbId(telegramUser).flatMap { userId =>
             getPreferences(userId).map(_._2)
         }
     }
 
-    override def savePreferences(user: TelegramUser, prefs: SettingsFSM.Preferences) = {
+    override def savePreferences(user: TelegramUser, prefs: Preferences) = {
         val userId = getUserOrSave(user)
         saveOrUpdatePreferences(userId, prefs)
     }
 
-    private def getPreferences(userId: Int): Option[(Int, SettingsFSM.Preferences)] = {
+    private def getPreferences(userId: Int): Option[(Int, Preferences)] = {
         DB readOnly { implicit session =>
             //@formatter:off
             sql"""select id, latitude, longitude, language, webcams_ids
-                 |from $Preferences where user_id = ?""".stripMargin
+                 |from $PreferencesTableName where user_id = ?""".stripMargin
                 .bind(userId)
                 .map(rs => mapRsToForecast(rs))
                 .single()
@@ -42,8 +41,8 @@ object Database extends PreferencesProvider {
         }
     }
 
-    private def mapRsToForecast(rs: WrappedResultSet): (Int, SettingsFSM.Preferences) = {
-        val builder = new Builder
+    private def mapRsToForecast(rs: WrappedResultSet): (Int, Preferences) = {
+        val builder = new Preferences.Builder
 
         builder.setLanguage(rs.string("language"))
         builder.setGeo(GeoPrefs(rs.double("latitude"), rs.double("longitude")))
@@ -81,7 +80,7 @@ object Database extends PreferencesProvider {
     }
 
     private def saveOrUpdatePreferences(userId: Int,
-                                        prefs: SettingsFSM.Preferences) = {
+                                        prefs: Preferences) = {
         getPreferences(userId) match {
             case Some((id, _)) => updatePreferences(id, prefs)
             case None =>
@@ -91,7 +90,7 @@ object Database extends PreferencesProvider {
                 val webcams = prefs.webcams.toArray
                 DB localTx { implicit session =>
                     //@formatter:off
-                    sql"""insert into $Preferences
+                    sql"""insert into $PreferencesTableName
                          |(user_id, message_datetime, latitude, longitude, language, webcams_ids)
                          |values ($userId, ${DateTime.now}, $latitude, $longitude, $language::lang,
                          |${session.connection.createArrayOf("varchar", webcams.toArray)})"""
@@ -104,10 +103,10 @@ object Database extends PreferencesProvider {
     }
 
     private def updatePreferences(rowId: Int,
-                                  prefs: SettingsFSM.Preferences) = {
+                                  prefs: Preferences) = {
         DB localTx { implicit session =>
             //@formatter:off
-            sql"""|update $Preferences set
+            sql"""|update $PreferencesTableName set
                   |latitude = ${prefs.geo.latitude},
                   |longitude = ${prefs.geo.longitude},
                   |language = ${prefs.language}::lang,

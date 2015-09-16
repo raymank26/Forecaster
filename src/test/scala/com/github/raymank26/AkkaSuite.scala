@@ -7,10 +7,12 @@ import org.scalatest.{BeforeAndAfterAll, FunSuiteLike, Matchers}
 /**
  * @author Anton Ermak
  */
-
 class AkkaSuite extends TestKit(ActorSystem("system"))
                         with DefaultTimeout
-                        with ImplicitSender with FunSuiteLike with Matchers with BeforeAndAfterAll {
+                        with ImplicitSender
+                        with FunSuiteLike
+                        with Matchers
+                        with BeforeAndAfterAll {
 
     override protected def afterAll(): Unit = {
         shutdown()

@@ -2,10 +2,11 @@ package com.github.raymank26.actor
 
 import com.github.raymank26.AkkaSuite
 import com.github.raymank26.actor.MessageDispatcher.SettingsSaved
-import com.github.raymank26.actor.SettingsFSM.{Conversation, Preferences, SettingsState, WebcamProvider}
+import com.github.raymank26.actor.SettingsFSM.{Conversation, SettingsState, WebcamProvider}
 import com.github.raymank26.actor.SettingsFSMTest._
 import com.github.raymank26.controller.Forecast.GeoPrefs
 import com.github.raymank26.db.PreferencesProvider
+import com.github.raymank26.model.Preferences
 import com.github.raymank26.model.telegram.TelegramMessage.{Location, Text}
 import com.github.raymank26.model.telegram.{TelegramMessage, TelegramUser}
 import com.github.raymank26.model.webcams.{Webcam, WebcamPreviewList}
