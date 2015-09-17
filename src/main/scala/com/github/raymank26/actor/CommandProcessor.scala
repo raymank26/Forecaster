@@ -24,7 +24,8 @@ private final class CommandProcessor extends Actor with ActorLogging with Utils 
         CurrentCommand -> processForecast(Currently) _,
         TodayCommand -> processForecast(Today) _,
         HelpCommand -> processHelp _,
-        SettingsCommand -> processSettings _
+        SettingsCommand -> processSettings _,
+        StartCommand -> processStart _
     )
 
     override def receive: Receive = {
@@ -38,6 +39,14 @@ private final class CommandProcessor extends Actor with ActorLogging with Utils 
             }
 
         case msg => messageIsNotSupported(msg)
+    }
+
+    private def processStart(msg: TelegramMessage): Unit = {
+        val from = sender()
+        runAsFuture { () =>
+            Telegram.sendMessage("Hi. I'm telegram bot", msg.from.chatId)
+            from ! MessageDispatcher.WantSettings(msg.from.chatId)
+        }
     }
 
     private def processSettings(msg: TelegramMessage): Unit = {

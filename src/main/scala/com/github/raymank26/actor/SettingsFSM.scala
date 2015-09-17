@@ -191,7 +191,7 @@ private object SettingsFSM {
          * Welcome message.
          */
         def sayHello(): Unit =
-            Telegram.sendMessage("Hi! Let's send me your location settings", chatId)
+            Telegram.sendMessage("Firstly, send me your location settings", chatId)
 
         /**
          * Handler for mistaken input
