@@ -5,6 +5,8 @@ import spray.json.DefaultJsonProtocol._
 import spray.json.{JsValue, RootJsonReader}
 
 /**
+ * JSON parser of forecast.io [[DateTime]].
+ *
  * @author Anton Ermak
  */
 object DateTimeAdapter extends RootJsonReader[DateTime] {

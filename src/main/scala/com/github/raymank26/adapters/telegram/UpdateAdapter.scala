@@ -6,6 +6,8 @@ import spray.json.DefaultJsonProtocol._
 import spray.json.{JsValue, RootJsonReader}
 
 /**
+ * [[TelegramUpdate]] serializer.
+ *
  * @author Anton Ermak
  */
 object UpdateAdapter extends RootJsonReader[TelegramUpdate] {

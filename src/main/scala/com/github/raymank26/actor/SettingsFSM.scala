@@ -16,6 +16,8 @@ import akka.actor.{Actor, ActorRef, ActorRefFactory, FSM, Props}
 import scala.util.Try
 
 /**
+ * This actor builds [[Preferences]] instance from quiz-like questions and answers.
+ *
  * @author Anton Ermak.
  */
 private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
@@ -31,7 +33,9 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
 
     conversation.sayHello()
 
-    // waiting for location
+    /**
+     * Waiting for location.
+     */
     when(OnHello) {
         case Event(msg: TelegramMessage, data) if msg.isLocation =>
             log.debug(s"location received $msg")
@@ -42,7 +46,9 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
         case _ => repeat()
     }
 
-    // waiting for language
+    /**
+     * Waiting for language.
+     */
     when(OnLocation) {
         case Event(msg: TelegramMessage, data) if getLanguage(msg).isDefined =>
             log.debug(s"language received $msg")
@@ -52,7 +58,9 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
         case _ => repeat()
     }
 
-    // is user wants to see webcams nearly?
+    /**
+     * Waiting for yes/no answers about webcams' preview feature.
+     */
     when(IsWebcamNeeded) {
         case Event(TelegramMessage(_, from, _, msg: Text), data) =>
             msg.text match {
@@ -67,7 +75,9 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
         case _ => repeat()
     }
 
-    // waiting for webcam identifier
+    /**
+     * Waiting for webcam identifier.
+     */
     when(OnWebcam) {
         case Event(msg: TelegramMessage, data) =>
             getWebcamIdentifier(msg) match {
@@ -90,7 +100,9 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
         case _ => goto(OnWebcam)
     }
 
-    // saving settings. Listen to self
+    /**
+     * Saving preferences.
+     */
     when(OnEnd) {
         case Event(user: TelegramUser, data) =>
             preferencesProvider.savePreferences(user, data.build())
@@ -168,24 +180,46 @@ private object SettingsFSM {
         override def apply(v1: GeoLocation): WebcamPreviewList = Webcams.getLinks(v1)
     }
 
+    /**
+     * Collection of available messages.
+     *
+     * @param chatId interlocutor's id
+     */
     class Conversation(val chatId: Int) {
 
+        /**
+         * Welcome message.
+         */
         def sayHello(): Unit =
             Telegram.sendMessage("Hi! Let's send me your location settings", chatId)
 
+        /**
+         * Handler for mistaken input
+         * @param state current [[SettingsFSM]] state.
+         */
         def sayRetry(state: SettingsState): Unit = {
             Telegram.sendMessage("Try another one", chatId)
         }
 
+        /**
+         * Requests another webcam.
+         */
         def requestAnotherWebcam(): Unit = {
             Telegram.sendMessageAndPreserveKeyboard("Another one?", chatId)
         }
 
+        /**
+         * Requests language.
+         */
         def requestLanguage(): Unit =
             Telegram.sendMessage("The next is language", chatId,
-                replyKeyboard = Keyboard(buttons = Seq(Seq("en", "ru")),
-                    oneTimeKeyboard = true))
+                replyKeyboard = Keyboard(buttons = Seq(Seq("en", "ru")), oneTimeKeyboard = true))
 
+        /**
+         * Sends webcams' previews and sets special keyboard.
+         *
+         * @param webcams available webcams based on current user's location
+         */
         def requestWebcams(webcams: WebcamPreviewList): Unit = {
             val len = webcams.webcams.length
             val keyboardButtons = Seq
@@ -199,11 +233,17 @@ private object SettingsFSM {
                 replyKeyboard = Keyboard(keyboardButtons, oneTimeKeyboard = true))
         }
 
+        /**
+         * Checks if the user want to receive webcams previews near to current location
+         */
         def isWebcamNeeded(): Unit = {
             Telegram.sendMessage("Do you want to see webcams nearly?", chatId,
                 Telegram.Keyboard(Seq(Seq(TextYes, TextNo)), oneTimeKeyboard = true))
         }
 
+        /**
+         * Sends goodbye message.
+         */
         def sayGoodbye(): Unit = {
             Telegram.sendMessage(s"Saved! Try to use ${CommandProcessor.CurrentCommand }", chatId)
         }

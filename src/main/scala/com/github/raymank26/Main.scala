@@ -20,9 +20,11 @@ object Main extends Api {
 
     def main(args: Array[String]): Unit = {
 
-        val bindingFuture: Future[ServerBinding] = Http().bindAndHandle(routes, "0.0.0.0", 8090)
+        val (host, port) = ConfigManager.getHostAndPort
 
-        println(s"Server online at http://localhost:8090/\n")
+        val bindingFuture: Future[ServerBinding] = Http().bindAndHandle(routes, host, port)
+
+        println(s"Server online at http://$host:$port/\n")
     }
 
     override def processRequest(telegramMessage: TelegramMessage): Unit =

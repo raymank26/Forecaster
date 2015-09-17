@@ -15,6 +15,8 @@ import scala.collection.immutable.HashMap
 import scala.concurrent.Future
 
 /**
+ * This actor handles various input commands (starts with '/').
+ *
  * @author Anton Ermak
  */
 private final class CommandProcessor extends Actor with ActorLogging with Utils {
@@ -38,7 +40,7 @@ private final class CommandProcessor extends Actor with ActorLogging with Utils 
                 Telegram.sendMessage("Command isn't supported", msg.from.chatId)
             }
 
-        case msg => messageNotSupported(msg)
+        case msg => messageIsNotSupported(msg)
     }
 
     private def processSettings(msg: TelegramMessage): Unit = {
@@ -50,7 +52,7 @@ private final class CommandProcessor extends Actor with ActorLogging with Utils 
         val sendTo = sender()
         val chatId = from.chatId
 
-        val forecastFuture = runAsFuture {
+        val forecastFuture = runAsFuture { () =>
             Database.getPreferences(from)
         }
         forecastFuture.onSuccess {
@@ -59,12 +61,12 @@ private final class CommandProcessor extends Actor with ActorLogging with Utils 
         }
     }
 
-    private def preferencesRequired(sender: ActorRef, chatId: Int) = runAsFuture {
+    private def preferencesRequired(sender: ActorRef, chatId: Int) = runAsFuture { () =>
         Telegram.sendMessage("Send to me your location firstly", chatId)
     }
 
     private def sendForecast(sender: ActorRef, prefs: Preferences,
-                             chatId: Int): Future[Unit] = runAsFuture {
+                             chatId: Int): Future[Unit] = runAsFuture { () =>
 
         val forecast = Forecast.getCurrentForecast(prefs.geo, prefs.language)
         if (prefs.webcams.nonEmpty) {

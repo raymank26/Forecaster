@@ -11,6 +11,8 @@ import akka.routing.RoundRobinPool
 import scala.collection.mutable
 
 /**
+ * Main actor which handles all incoming messages and passes them to appropriate actors.
+ *
  * @author Anton Ermak
  */
 private final class MessageDispatcher extends Actor with ActorLogging with Utils {
@@ -36,7 +38,7 @@ private final class MessageDispatcher extends Actor with ActorLogging with Utils
         case WantSettings(chatId) =>
             inSettings(chatId) = SettingsFSM(chatId, self, context)
 
-        case msg => messageNotSupported(msg)
+        case msg => messageIsNotSupported(msg)
     }
 
     override def supervisorStrategy: SupervisorStrategy = OneForOneStrategy() {

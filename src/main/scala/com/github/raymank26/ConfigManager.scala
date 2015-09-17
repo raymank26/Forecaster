@@ -15,4 +15,8 @@ object ConfigManager {
         config.getString("forecaster.webcams.api-key")
     }
 
+    def getHostAndPort: (String, Int) = {
+        (config.getString("forecaster.host"), config.getInt("forecaster.port"))
+    }
+
 }

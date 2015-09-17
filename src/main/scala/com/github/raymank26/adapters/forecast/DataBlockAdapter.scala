@@ -8,6 +8,8 @@ import spray.json.DefaultJsonProtocol._
 import spray.json.{JsArray, JsValue, RootJsonReader}
 
 /**
+ * JSON parser of forecast.io [[DataBlock]].
+ *
  * @author Anton Ermak
  */
 object DataBlockAdapter extends RootJsonReader[DataBlock] {

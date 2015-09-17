@@ -10,6 +10,8 @@ import spray.json.DefaultJsonProtocol._
 import spray.json.{JsValue, JsonReader, RootJsonReader}
 
 /**
+ * JSON parser of forecast.io [[DataPoint]].
+ *
  * @author Anton Ermak
  */
 object DataPointJsonAdapter extends RootJsonReader[DataPoint] {

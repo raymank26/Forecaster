@@ -6,6 +6,8 @@ import spray.json.DefaultJsonProtocol._
 import spray.json.{JsValue, RootJsonReader}
 
 /**
+ * [[TelegramUser]] serializer.
+ *
  * @author Anton Ermak
  */
 object TelegramUserAdapter extends RootJsonReader[TelegramUser] {

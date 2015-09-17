@@ -6,6 +6,8 @@ import com.github.raymank26.controller.Telegram.Keyboard
 import spray.json.{JsArray, JsBoolean, JsObject, JsString, JsValue, RootJsonWriter}
 
 /**
+ * [[Telegram.Keyboard]] serializer.
+ *
  * @author Anton Ermak
  */
 object TelegramKeyboardAdapter extends RootJsonWriter[Telegram.Keyboard] {
