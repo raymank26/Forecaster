@@ -1,6 +1,6 @@
 package com.github.raymank26.actor
 
-import com.github.raymank26.actor.CommandProcessor.HelpMessage
+import com.github.raymank26.actor.CommandProcessor._
 import com.github.raymank26.controller.{Forecast, Telegram, Webcams}
 import com.github.raymank26.db.Database
 import com.github.raymank26.model.Preferences
@@ -9,7 +9,7 @@ import com.github.raymank26.model.forecast.Weather
 import com.github.raymank26.model.telegram.TelegramMessage
 import com.github.raymank26.model.telegram.TelegramMessage.Text
 
-import akka.actor.{Actor, ActorContext, ActorRef, Props}
+import akka.actor.{Actor, ActorRef}
 import akka.event.{Logging, LoggingAdapter}
 
 import scala.collection.immutable.HashMap
@@ -25,10 +25,10 @@ private final class CommandProcessor extends Actor with Utils {
     import context.dispatcher
 
     private val commands: Map[String, TelegramMessage => Unit] = HashMap(
-        "/current" -> processCurrent _,
-        "/help" -> processHelp _,
-        "/settings" -> processSettings _,
-        "/start" -> processSettings _
+        CurrentCommand -> processCurrent _,
+        HelpCommand -> processHelp _,
+        SettingsCommand -> processSettings _,
+        StartCommand -> processSettings _
     )
 
     override def receive: Receive = {
@@ -70,8 +70,10 @@ private final class CommandProcessor extends Actor with Utils {
                              chatId: Int): Future[Unit] = runAsFuture(logger) {
 
         val forecast = Forecast.getCurrentForecast(prefs.geo, prefs.language)
-        val previews = Webcams.getLinks(prefs.geo, prefs.webcams)
-        Telegram.sendWebcamPreviews(previews, chatId)
+        if (prefs.webcams.nonEmpty) {
+            val previews = Webcams.getLinks(prefs.geo, prefs.webcams)
+            Telegram.sendWebcamPreviews(previews, chatId)
+        }
         Telegram.sendMessage(CommandProcessor.makeForecastMessage(forecast), chatId)
     }
 
@@ -80,7 +82,10 @@ private final class CommandProcessor extends Actor with Utils {
     }
 }
 
-object CommandProcessor {
+private object CommandProcessor {
+
+    val CurrentCommand = "/current"
+
     private val HelpMessage =
         """
           |I'm a forecast bot. The available commands are:
@@ -89,10 +94,13 @@ object CommandProcessor {
           |3. /settings - redefine settings
           |The author is @antonermak.
         """.stripMargin
+
+    private val HelpCommand = "/help"
+    private val SettingsCommand = "/settings"
+    private val StartCommand = "/start"
+
     private val SnowSymbol = '\u2744'
     private val RainRymbol = '\u2614'
-
-    def apply(context: ActorContext): ActorRef = context.actorOf(Props[CommandProcessor])
 
     private def makeForecastMessage(forecast: Weather): String = {
         val icon = serializeIcon(forecast.currently.icon)

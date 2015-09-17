@@ -43,7 +43,19 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
     when(OnLocation) {
         case Event(msg: TelegramMessage, data) if getLanguage(msg).isDefined =>
             data.setLanguage(getLanguage(msg).get)
-            goto(OnWebcam).using(data)
+            goto(IsWebcamNeeded).using(data)
+        case _ => repeat()
+    }
+
+    // is user wants to see webcams nearly?
+    when(IsWebcamNeeded) {
+        case Event(TelegramMessage(_, from, _, msg: Text), data) =>
+            msg.text match {
+                case TextYes => goto(OnWebcam)
+                case TextNo =>
+                    self ! from
+                    goto(OnEnd)
+            }
         case _ => repeat()
     }
 
@@ -70,17 +82,19 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
     // saving settings. Listen to self
     when(OnEnd) {
         case Event(user: TelegramUser, data) =>
-            parent ! SettingsSaved(conversation.chatId)
             preferencesProvider.savePreferences(user, data.build())
+            parent ! SettingsSaved(conversation.chatId)
             stop(Normal)
     }
 
     onTransition {
         case OnHello -> OnLocation => conversation.requestLanguage()
-        case OnLocation -> OnWebcam =>
+        case OnLocation -> IsWebcamNeeded =>
+            conversation.isWebcamNeeded()
+        case IsWebcamNeeded -> OnWebcam =>
             webcams = webcamProvider(stateData.geo)
             conversation.requestWebcams(webcams)
-        case OnWebcam -> OnEnd =>
+        case _ -> OnEnd =>
             conversation.sayGoodbye()
         // remove actor. Notify watcher
         case a -> b => log.warning(s"No transition from $a to $b")
@@ -112,11 +126,15 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
     }
 }
 
-object SettingsFSM {
+private object SettingsFSM {
 
-    private val TextStop = "Stop"
-    private val TextEn = "en"
-    private val TextRu = "ru"
+    val TextStop = "Stop"
+
+    val TextEn = "en"
+    val TextRu = "ru"
+
+    val TextYes = "Yes"
+    val TextNo = "No"
 
     def apply(chatId: Int, parent: ActorRef, context: ActorRefFactory) = {
         context.actorOf(Props(classOf[SettingsFSM], parent, new Conversation(chatId),
@@ -167,8 +185,13 @@ object SettingsFSM {
                 replyKeyboard = Keyboard(keyboardButtons, oneTimeKeyboard = true))
         }
 
+        def isWebcamNeeded(): Unit = {
+            Telegram.sendMessage("Do you want to see webcams nearly?", chatId,
+                Telegram.Keyboard(Seq(Seq(TextYes, TextNo)), oneTimeKeyboard = true))
+        }
+
         def sayGoodbye(): Unit = {
-            Telegram.sendMessage("Saved! Try to use /current", chatId)
+            Telegram.sendMessage(s"Saved! Try to use ${CommandProcessor.CurrentCommand }", chatId)
         }
     }
 
@@ -178,6 +201,7 @@ object SettingsFSM {
 
     case object OnLanguage extends SettingsState
 
+    case object IsWebcamNeeded extends SettingsState
     case object OnWebcam extends SettingsState
 
     case object OnEnd extends SettingsState

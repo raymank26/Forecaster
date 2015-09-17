@@ -11,6 +11,7 @@ import com.github.raymank26.model.telegram.TelegramMessage.{Location, Text}
 import com.github.raymank26.model.telegram.{TelegramMessage, TelegramUser}
 import com.github.raymank26.model.webcams.{Webcam, WebcamPreviewList}
 
+import akka.actor.ActorRef
 import org.joda.time.DateTime
 
 /**
@@ -33,33 +34,42 @@ final class SettingsFSMTest extends AkkaSuite {
         override def sayHello(): Unit = {
             self ! Hello
         }
+
+        override def isWebcamNeeded(): Unit = self ! IsWebcamNeeded
     }
 
-    private val mockedPreferencesProvider = new PreferencesProvider {
+    private def sendWebcams(settingsRef: ActorRef): Unit = {
+        0 until Webcams foreach { _ =>
+            settingsRef ! createTelegramMessage(Text("0"))
+            expectMsg(RequestAnotherWebcam)
+        }
+        settingsRef ! createTelegramMessage(Text(SettingsFSM.TextStop))
+    }
 
-        override def savePreferences(user: TelegramUser, prefs: Preferences): Unit = ()
+    class MockedPreferencesProvider(lengthValue: Int) extends PreferencesProvider {
+        override def savePreferences(user: TelegramUser, prefs: Preferences): Unit = {
+            prefs.webcams should have length lengthValue
+        }
 
         override def getPreferences(telegramUser: TelegramUser): Option[Preferences] = None
+
     }
 
     test("plain workflow") {
         val settingsRef = SettingsFSM(self, system, mockedConversation, mockedWebcamProvider,
-            mockedPreferencesProvider)
+            new MockedPreferencesProvider(Webcams))
 
         expectMsg(Hello)
         settingsRef ! createTelegramMessage(Location(10, 11))
 
         expectMsg(RequestLanguage)
-        settingsRef ! createTelegramMessage(Text("ru"))
+        settingsRef ! createTelegramMessage(Text(SettingsFSM.TextRu))
+
+        expectMsg(IsWebcamNeeded)
+        settingsRef ! createTelegramMessage(Text(SettingsFSM.TextYes))
 
         expectMsg(RequestWebcams)
-        settingsRef ! createTelegramMessage(Text("0"))
-
-        expectMsg(RequestAnotherWebcam)
-        settingsRef ! createTelegramMessage(Text("1"))
-
-        expectMsg(RequestAnotherWebcam)
-        settingsRef ! createTelegramMessage(Text("Stop"))
+        sendWebcams(settingsRef)
 
         expectMsg(SayGoodbye)
         expectMsg(SettingsSaved(ChatId))
@@ -67,7 +77,7 @@ final class SettingsFSMTest extends AkkaSuite {
 
     test("mistaken workflow") {
         val settingsRef = SettingsFSM(self, system, mockedConversation, mockedWebcamProvider,
-            mockedPreferencesProvider)
+            new MockedPreferencesProvider(Webcams))
 
         expectMsg(Hello)
         settingsRef ! createTelegramMessage(Text("error input"))
@@ -78,14 +88,31 @@ final class SettingsFSMTest extends AkkaSuite {
         expectMsg(RequestLanguage)
         settingsRef ! createTelegramMessage(Text("ru"))
 
+        expectMsg(IsWebcamNeeded)
+        settingsRef ! createTelegramMessage(Text(SettingsFSM.TextYes))
+
         expectMsg(RequestWebcams)
-        settingsRef ! createTelegramMessage(Text("0"))
+        sendWebcams(settingsRef)
 
-        expectMsg(RequestAnotherWebcam)
-        settingsRef ! createTelegramMessage(Text("1"))
+        expectMsg(SayGoodbye)
+        expectMsg(SettingsSaved(ChatId))
+    }
 
-        expectMsg(RequestAnotherWebcam)
-        settingsRef ! createTelegramMessage(Text("Stop"))
+    test("no webcams needed workflow") {
+        val settingsRef = SettingsFSM(self, system, mockedConversation, mockedWebcamProvider,
+            new MockedPreferencesProvider(0))
+
+        expectMsg(Hello)
+        settingsRef ! createTelegramMessage(Text("error input"))
+
+        expectMsg(Retry(SettingsFSM.OnHello))
+        settingsRef ! createTelegramMessage(Location(10, 11))
+
+        expectMsg(RequestLanguage)
+        settingsRef ! createTelegramMessage(Text("ru"))
+
+        expectMsg(IsWebcamNeeded)
+        settingsRef ! createTelegramMessage(Text(SettingsFSM.TextNo))
 
         expectMsg(SayGoodbye)
         expectMsg(SettingsSaved(ChatId))
@@ -96,6 +123,8 @@ final class SettingsFSMTest extends AkkaSuite {
 private object SettingsFSMTest {
 
     val ChatId = 55
+
+    val Webcams = 2
 
     val mockedWebcamProvider = new WebcamProvider {
         private val webcamSize = 5
@@ -117,6 +146,8 @@ private object SettingsFSMTest {
     case object RequestAnotherWebcam extends ExpectedMessages
 
     case object RequestWebcams extends ExpectedMessages
+
+    case object IsWebcamNeeded extends ExpectedMessages
 
     case object RequestLanguage extends ExpectedMessages
 
