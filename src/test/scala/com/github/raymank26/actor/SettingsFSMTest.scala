@@ -6,7 +6,7 @@ import com.github.raymank26.actor.SettingsFSM.{Conversation, SettingsState, Webc
 import com.github.raymank26.actor.SettingsFSMTest._
 import com.github.raymank26.db.PreferencesProvider
 import com.github.raymank26.model.Preferences
-import com.github.raymank26.model.Preferences.Location
+import com.github.raymank26.model.Preferences.{Location => GeoLocation}
 import com.github.raymank26.model.telegram.TelegramMessage.{Location, Text}
 import com.github.raymank26.model.telegram.{TelegramMessage, TelegramUser}
 import com.github.raymank26.model.webcams.{Webcam, WebcamPreviewList}
@@ -129,7 +129,7 @@ private object SettingsFSMTest {
     val mockedWebcamProvider = new WebcamProvider {
         private val webcamSize = 5
 
-        override def apply(v1: Location): WebcamPreviewList =
+        override def apply(v1: GeoLocation): WebcamPreviewList =
             WebcamPreviewList(List.fill(webcamSize)(new Webcam("foo", "bar", "some-id")))
     }
 

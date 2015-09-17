@@ -6,7 +6,7 @@ import com.github.raymank26.controller.Telegram.Keyboard
 import com.github.raymank26.controller.{Telegram, Webcams}
 import com.github.raymank26.db.{Database, PreferencesProvider}
 import com.github.raymank26.model.Preferences
-import com.github.raymank26.model.Preferences.Location
+import com.github.raymank26.model.Preferences.{Location => GeoLocation}
 import com.github.raymank26.model.telegram.TelegramMessage.{Location, Text}
 import com.github.raymank26.model.telegram.{TelegramMessage, TelegramUser}
 import com.github.raymank26.model.webcams.WebcamPreviewList
@@ -37,7 +37,7 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
             log.debug(s"location received $msg")
 
             val location = msg.content.asInstanceOf[Location]
-            data.setGeo(Location(location.latitude, location.longitude))
+            data.setGeo(GeoLocation(location.latitude, location.longitude))
             goto(OnLocation).using(data)
         case _ => repeat()
     }
@@ -164,8 +164,8 @@ private object SettingsFSM {
 
     sealed trait SettingsState
 
-    class WebcamProvider extends (Location => WebcamPreviewList) {
-        override def apply(v1: Location): WebcamPreviewList = Webcams.getLinks(v1)
+    class WebcamProvider extends (GeoLocation => WebcamPreviewList) {
+        override def apply(v1: GeoLocation): WebcamPreviewList = Webcams.getLinks(v1)
     }
 
     class Conversation(val chatId: Int) {
