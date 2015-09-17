@@ -4,9 +4,9 @@ import com.github.raymank26.AkkaSuite
 import com.github.raymank26.actor.MessageDispatcher.SettingsSaved
 import com.github.raymank26.actor.SettingsFSM.{Conversation, SettingsState, WebcamProvider}
 import com.github.raymank26.actor.SettingsFSMTest._
-import com.github.raymank26.controller.Forecast.GeoPrefs
 import com.github.raymank26.db.PreferencesProvider
 import com.github.raymank26.model.Preferences
+import com.github.raymank26.model.Preferences.Location
 import com.github.raymank26.model.telegram.TelegramMessage.{Location, Text}
 import com.github.raymank26.model.telegram.{TelegramMessage, TelegramUser}
 import com.github.raymank26.model.webcams.{Webcam, WebcamPreviewList}
@@ -129,7 +129,7 @@ private object SettingsFSMTest {
     val mockedWebcamProvider = new WebcamProvider {
         private val webcamSize = 5
 
-        override def apply(v1: GeoPrefs): WebcamPreviewList =
+        override def apply(v1: Location): WebcamPreviewList =
             WebcamPreviewList(List.fill(webcamSize)(new Webcam("foo", "bar", "some-id")))
     }
 

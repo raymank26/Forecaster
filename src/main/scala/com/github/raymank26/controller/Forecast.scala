@@ -1,6 +1,7 @@
 package com.github.raymank26.controller
 
 import com.github.raymank26.adapters.forecast.WeatherAdapter
+import com.github.raymank26.model.Preferences.Location
 import com.github.raymank26.model.forecast.Weather
 
 import com.typesafe.config.ConfigFactory
@@ -19,7 +20,7 @@ object Forecast {
         typesafeConfig.getString(s"forecaster.forecast.api-key")
     }
 
-    def getCurrentForecast(settings: GeoPrefs, lang: String) = {
+    def getCurrentForecast(settings: Location, lang: String): Weather = {
         parseResponse(makeRequest(settings, lang).body)
     }
 
@@ -27,7 +28,7 @@ object Forecast {
         body.parseJson.convertTo[Weather]
     }
 
-    private def makeRequest(settings: GeoPrefs, lang: String) = {
+    private def makeRequest(settings: Location, lang: String) = {
         val url =
             s"""https://api.forecast.io/
                |forecast/$forecastApiKey/${settings.latitude},${settings.longitude}"""
@@ -38,7 +39,5 @@ object Forecast {
             .param("lang", lang.toLowerCase)
             .asString
     }
-
-    case class GeoPrefs(latitude: Double, longitude: Double)
 
 }

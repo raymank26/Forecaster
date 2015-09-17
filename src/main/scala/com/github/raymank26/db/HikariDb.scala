@@ -16,7 +16,7 @@ import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
  */
 private class HikariDb(databaseUrl: DatabaseUrl) {
 
-    val dataSource: DataSource = {
+    private val dataSource: DataSource = {
         val config = new HikariConfig()
         val url = s"jdbc:postgresql://${databaseUrl.host}:${databaseUrl.port}/${databaseUrl.name}"
         config.setJdbcUrl(url)
@@ -34,7 +34,7 @@ private class HikariDb(databaseUrl: DatabaseUrl) {
     }
 }
 
-object HikariDb {
+private object HikariDb {
 
     private lazy val instance = initDb()
 
@@ -57,7 +57,7 @@ object HikariDb {
         ))
     }
 
-    private[db] case class DatabaseUrl(host: String, name: String, password: String,
+    case class DatabaseUrl(host: String, name: String, password: String,
                                        username: String, port: Int)
 
 }

@@ -1,6 +1,6 @@
 package com.github.raymank26.actor
 
-import akka.event.LoggingAdapter
+import akka.actor.ActorLogging
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -8,11 +8,12 @@ import scala.concurrent.{ExecutionContext, Future}
  * @author Anton Ermak
  */
 private[actor] trait Utils {
+    this: ActorLogging =>
 
     def messageNotSupported(msg: Any): Unit =
         throw new IllegalStateException(s"no such handler for message $msg")
 
-    def runAsFuture[T](log: LoggingAdapter)(body: => T)(implicit ex: ExecutionContext): Future[T] = {
+    def runAsFuture[T](body: => T)(implicit ex: ExecutionContext): Future[T] = {
         val f = Future(body)
         f.onFailure {
             case exception => log.error(exception, "exception")

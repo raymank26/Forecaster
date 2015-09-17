@@ -9,8 +9,7 @@ import com.github.raymank26.model.forecast.Weather
 import com.github.raymank26.model.telegram.TelegramMessage
 import com.github.raymank26.model.telegram.TelegramMessage.Text
 
-import akka.actor.{Actor, ActorRef}
-import akka.event.{Logging, LoggingAdapter}
+import akka.actor.{Actor, ActorLogging, ActorRef}
 
 import scala.collection.immutable.HashMap
 import scala.concurrent.Future
@@ -18,9 +17,7 @@ import scala.concurrent.Future
 /**
  * @author Anton Ermak
  */
-private final class CommandProcessor extends Actor with Utils {
-
-    val logger: LoggingAdapter = Logging(context.system, this)
+private final class CommandProcessor extends Actor with ActorLogging with Utils {
 
     import context.dispatcher
 
@@ -53,7 +50,7 @@ private final class CommandProcessor extends Actor with Utils {
         val sendTo = sender()
         val chatId = from.chatId
 
-        val forecastFuture = runAsFuture(logger) {
+        val forecastFuture = runAsFuture {
             Database.getPreferences(from)
         }
         forecastFuture.onSuccess {
@@ -62,12 +59,12 @@ private final class CommandProcessor extends Actor with Utils {
         }
     }
 
-    private def preferencesRequired(sender: ActorRef, chatId: Int) = runAsFuture(logger) {
+    private def preferencesRequired(sender: ActorRef, chatId: Int) = runAsFuture {
         Telegram.sendMessage("Send to me your location firstly", chatId)
     }
 
     private def sendForecast(sender: ActorRef, prefs: Preferences,
-                             chatId: Int): Future[Unit] = runAsFuture(logger) {
+                             chatId: Int): Future[Unit] = runAsFuture {
 
         val forecast = Forecast.getCurrentForecast(prefs.geo, prefs.language)
         if (prefs.webcams.nonEmpty) {

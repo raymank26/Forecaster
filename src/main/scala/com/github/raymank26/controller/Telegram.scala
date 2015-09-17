@@ -15,6 +15,8 @@ object Telegram {
 
     private implicit val telegramKeyboardAdapter = TelegramKeyboardAdapter
 
+    private val ReplyMarkup: String = "reply_markup"
+
     def sendWebcamPreviews(previews: WebcamPreviewList, chatId: Int): Unit = {
         previews.webcams.foreach { webcam =>
             sendPhoto(downloadFromUrl(webcam.previewUrl), webcam.title, chatId)
@@ -29,14 +31,14 @@ object Telegram {
 
     def sendMessage(text: String, chatId: Int): Unit = {
         prepareSendMessage(text, chatId)
-            .param("reply_markup", JsObject("hide_keyboard" -> JsBoolean(true)).compactPrint)
+            .param(ReplyMarkup, JsObject("hide_keyboard" -> JsBoolean(true)).compactPrint)
             .asString
             .body
     }
 
     def sendMessage(text: String, chatId: Int, replyKeyboard: Keyboard): Unit = {
         prepareSendMessage(text, chatId)
-            .param("reply_markup", replyKeyboard.toJson.compactPrint)
+            .param(ReplyMarkup, replyKeyboard.toJson.compactPrint)
             .asString
             .body
     }
@@ -50,7 +52,7 @@ object Telegram {
     }
 
     private def sendPhoto(content: Array[Byte], caption: String, chatId: Int): Unit = {
-        val part = MultiPart("photo", "photo.jpg", "image/jpeg", content)
+        val part = MultiPart("photo", s"$caption.jpg", "image/jpeg", content)
         prepareRequest("sendPhoto", Map("caption" -> caption, "chat_id" -> chatId.toString))
             .postMulti(part)
             .asString

@@ -5,8 +5,7 @@ import com.github.raymank26.controller.Telegram
 import com.github.raymank26.model.telegram.TelegramMessage
 
 import akka.actor.SupervisorStrategy.Stop
-import akka.actor.{Actor, ActorRef, ActorSystem, OneForOneStrategy, Props, SupervisorStrategy}
-import akka.event.Logging
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, OneForOneStrategy, Props, SupervisorStrategy}
 import akka.routing.RoundRobinPool
 
 import scala.collection.mutable
@@ -14,9 +13,7 @@ import scala.collection.mutable
 /**
  * @author Anton Ermak
  */
-private final class MessageDispatcher extends Actor with Utils {
-
-    private val logger = Logging(context.system, this)
+private final class MessageDispatcher extends Actor with ActorLogging with Utils {
 
     private val commandRouter = context.actorOf(RoundRobinPool(5).props(Props[CommandProcessor]),
         "command-router")
@@ -47,7 +44,7 @@ private final class MessageDispatcher extends Actor with Utils {
     }
 
     private def unsupportedMessage(msg: TelegramMessage): Unit = {
-        logger.warning(s"no such handler for $msg")
+        log.warning(s"no such handler for $msg")
         Telegram.sendMessage("I don't understand you", msg.from.chatId)
 
     }
@@ -68,4 +65,5 @@ object MessageDispatcher {
     private[actor] case class WantSettings(chatId: Int)
 
     private[actor] case class SettingsSaved(chatId: Int)
+
 }

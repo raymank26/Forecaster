@@ -1,7 +1,7 @@
 package com.github.raymank26.db
 
-import com.github.raymank26.controller.Forecast.GeoPrefs
 import com.github.raymank26.model.Preferences
+import com.github.raymank26.model.Preferences.Location
 import com.github.raymank26.model.telegram.TelegramUser
 
 import org.joda.time.DateTime
@@ -12,7 +12,7 @@ import scalikejdbc._
  */
 object Database extends PreferencesProvider {
 
-    private val Users = sqls"users"
+    private val UsersTableName = sqls"users"
     private val PreferencesTableName = sqls"preferences"
 
     HikariDb.setSession()
@@ -45,7 +45,7 @@ object Database extends PreferencesProvider {
         val builder = new Preferences.Builder
 
         builder.setLanguage(rs.string("language"))
-        builder.setGeo(GeoPrefs(rs.double("latitude"), rs.double("longitude")))
+        builder.setGeo(Location(rs.double("latitude"), rs.double("longitude")))
 
         rs.array("webcams_ids").getArray.asInstanceOf[Array[String]].foreach { item =>
             builder.addWebcam(item)
@@ -56,7 +56,7 @@ object Database extends PreferencesProvider {
 
     private def getUserDbId(user: TelegramUser): Option[Int] = {
         DB readOnly { implicit session =>
-            sql"""select id from $Users where user_id = ?"""
+            sql"""select id from $UsersTableName where user_id = ?"""
                 .bind(user.chatId)
                 .map(rs => rs.int("id"))
                 .single()
@@ -71,7 +71,7 @@ object Database extends PreferencesProvider {
     private def saveUser(user: TelegramUser): Int = {
         DB localTx { implicit session =>
             //@formatter:off
-            sql"""insert into $Users (username, user_id)
+            sql"""insert into $UsersTableName (username, user_id)
                  |values (${user.username }, ${user.chatId})""".stripMargin
                 .update()
                 .apply()

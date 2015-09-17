@@ -2,7 +2,7 @@ package com.github.raymank26.controller
 
 import com.github.raymank26.ConfigManager
 import com.github.raymank26.adapters.webcams.WebcamPreviewListAdapter
-import com.github.raymank26.controller.Forecast.GeoPrefs
+import com.github.raymank26.model.Preferences.Location
 import com.github.raymank26.model.webcams.WebcamPreviewList
 
 import spray.json._
@@ -22,12 +22,14 @@ object Webcams {
         "format" -> "json"
     )
 
-    def getLinks(geo: GeoPrefs, webcamsIds: Seq[String]) = {
+    private val BaseUrl: String = "http://api.webcams.travel/"
+
+    def getLinks(geo: Location, webcamsIds: Seq[String]) = {
         val params = defaultParams ++ HashMap(
             "method" -> "wct.webcams.get_details_multiple",
             "webcamids" -> webcamsIds.mkString(",")
         )
-        Http(s"http://api.webcams.travel/rest")
+        Http(s"${BaseUrl }rest")
             .params(params)
             .asString
             .body
@@ -35,7 +37,7 @@ object Webcams {
             .convertTo[WebcamPreviewList]
     }
 
-    def getLinks(geo: GeoPrefs): WebcamPreviewList = {
+    def getLinks(geo: Location): WebcamPreviewList = {
 
         val params = defaultParams ++ HashMap(
             "method" -> "wct.webcams.list_nearby",
@@ -43,7 +45,7 @@ object Webcams {
             "lng" -> geo.longitude.toString
         )
 
-        Http(s"http://api.webcams.travel/rest")
+        Http(s"${BaseUrl }rest")
             .params(params)
             .asString
             .body

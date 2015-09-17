@@ -2,16 +2,15 @@ package com.github.raymank26.actor
 
 import com.github.raymank26.actor.MessageDispatcher.SettingsSaved
 import com.github.raymank26.actor.SettingsFSM._
-import com.github.raymank26.controller.Forecast.GeoPrefs
 import com.github.raymank26.controller.Telegram.Keyboard
 import com.github.raymank26.controller.{Telegram, Webcams}
 import com.github.raymank26.db.{Database, PreferencesProvider}
 import com.github.raymank26.model.Preferences
+import com.github.raymank26.model.Preferences.Location
 import com.github.raymank26.model.telegram.TelegramMessage.{Location, Text}
 import com.github.raymank26.model.telegram.{TelegramMessage, TelegramUser}
 import com.github.raymank26.model.webcams.WebcamPreviewList
 
-import akka.actor.FSM.Normal
 import akka.actor.{Actor, ActorRef, ActorRefFactory, FSM, Props}
 
 import scala.util.Try
@@ -28,13 +27,17 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
 
     startWith(OnHello, new Preferences.Builder)
 
+    log.debug(s"initial state, chat_id = ${conversation.chatId }")
+
     conversation.sayHello()
 
     // waiting for location
     when(OnHello) {
         case Event(msg: TelegramMessage, data) if msg.isLocation =>
+            log.debug(s"location received $msg")
+
             val location = msg.content.asInstanceOf[Location]
-            data.setGeo(GeoPrefs(location.latitude, location.longitude))
+            data.setGeo(Location(location.latitude, location.longitude))
             goto(OnLocation).using(data)
         case _ => repeat()
     }
@@ -42,6 +45,8 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
     // waiting for language
     when(OnLocation) {
         case Event(msg: TelegramMessage, data) if getLanguage(msg).isDefined =>
+            log.debug(s"language received $msg")
+
             data.setLanguage(getLanguage(msg).get)
             goto(IsWebcamNeeded).using(data)
         case _ => repeat()
@@ -51,8 +56,11 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
     when(IsWebcamNeeded) {
         case Event(TelegramMessage(_, from, _, msg: Text), data) =>
             msg.text match {
-                case TextYes => goto(OnWebcam)
+                case TextYes =>
+                    log.debug(s"Webcams is needed $msg")
+                    goto(OnWebcam)
                 case TextNo =>
+                    log.debug(s"Webcams isn't needed $msg")
                     self ! from
                     goto(OnEnd)
             }
@@ -64,17 +72,20 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
         case Event(msg: TelegramMessage, data) =>
             getWebcamIdentifier(msg) match {
                 case Right(None) =>
+                    log.debug(s"User say Stop $msg")
                     self ! msg.from
                     goto(OnEnd)
                 case Right(Some(num)) =>
                     if (num < webcams.webcams.length) {
+                        log.debug(s"User say number $msg")
                         data.addWebcam(webcams.webcams(num).id)
                         conversation.requestAnotherWebcam()
                         stay()
                     } else {
                         repeat()
                     }
-                case Left(()) => repeat()
+                case Left(()) =>
+                    repeat()
             }
         case _ => goto(OnWebcam)
     }
@@ -84,7 +95,8 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
         case Event(user: TelegramUser, data) =>
             preferencesProvider.savePreferences(user, data.build())
             parent ! SettingsSaved(conversation.chatId)
-            stop(Normal)
+            context.stop(self)
+            stay()
     }
 
     onTransition {
@@ -97,14 +109,15 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
         case _ -> OnEnd =>
             conversation.sayGoodbye()
         // remove actor. Notify watcher
-        case a -> b => log.warning(s"No transition from $a to $b")
+        case a -> b =>
+            log.warning(s"No transition from $a to $b")
     }
 
     initialize()
 
     private def getLanguage(msg: TelegramMessage): Option[String] = {
         msg.content match {
-            case msg @ Text(SettingsFSM.TextRu) => Some(msg.text)
+            case msg @ Text(TextRu) => Some(msg.text)
             case msg @ Text(TextEn) => Some(msg.text)
             case _ => None
         }
@@ -121,6 +134,7 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
     }
 
     private def repeat(): State = {
+        log.debug("illegal message received")
         conversation.sayRetry(stateName)
         stay()
     }
@@ -150,8 +164,8 @@ private object SettingsFSM {
 
     sealed trait SettingsState
 
-    class WebcamProvider extends (GeoPrefs => WebcamPreviewList) {
-        override def apply(v1: GeoPrefs): WebcamPreviewList = Webcams.getLinks(v1)
+    class WebcamProvider extends (Location => WebcamPreviewList) {
+        override def apply(v1: Location): WebcamPreviewList = Webcams.getLinks(v1)
     }
 
     class Conversation(val chatId: Int) {
@@ -202,6 +216,7 @@ private object SettingsFSM {
     case object OnLanguage extends SettingsState
 
     case object IsWebcamNeeded extends SettingsState
+
     case object OnWebcam extends SettingsState
 
     case object OnEnd extends SettingsState

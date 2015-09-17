@@ -1,18 +1,18 @@
 package com.github.raymank26.model
 
-import com.github.raymank26.controller.Forecast.GeoPrefs
+import com.github.raymank26.model.Preferences.Location
 
 import scala.collection.mutable.ArrayBuffer
 
 /**
  * @author Anton Ermak
  */
-case class Preferences private(language: String, geo: GeoPrefs, webcams: Seq[String])
+case class Preferences private(language: String, geo: Location, webcams: Seq[String])
 
 object Preferences {
 
     class Builder() {
-        var geo: GeoPrefs = _
+        var geo: Location = _
         private var language: String = _
         private var webcams = ArrayBuffer[String]()
 
@@ -21,7 +21,7 @@ object Preferences {
             this
         }
 
-        def setGeo(geo: GeoPrefs): Builder = {
+        def setGeo(geo: Location): Builder = {
             this.geo = geo
             this
         }
@@ -35,5 +35,7 @@ object Preferences {
             Preferences(language, geo, webcams.toSeq)
         }
     }
+
+    case class Location(latitude: Double, longitude: Double)
 
 }
