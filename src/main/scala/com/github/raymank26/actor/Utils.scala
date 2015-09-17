@@ -18,7 +18,8 @@ private[actor] trait Utils {
     def runAsFuture[T](body: () => T)(implicit ex: ExecutionContext): Future[T] = {
         val f = Future(body())
         f.onFailure {
-            case exception => log.error(exception, "exception")
+            case exception =>
+                log.error(exception, "exception")
         }
         f
     }

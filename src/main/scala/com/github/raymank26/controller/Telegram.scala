@@ -43,6 +43,10 @@ object Telegram {
             .body
     }
 
+    def sendErrorInfo(chatId: Int): Unit = {
+        Telegram.sendMessage("Something went wrong :( Try to use me at another time.", chatId)
+    }
+
     private def prepareSendMessage(text: String, chatId: Int) = {
         val params: Map[String, String] = Map(
             "chat_id" -> chatId.toString,

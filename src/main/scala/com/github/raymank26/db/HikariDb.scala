@@ -58,6 +58,6 @@ private object HikariDb {
     }
 
     case class DatabaseUrl(host: String, name: String, password: String,
-                                       username: String, port: Int)
+                           username: String, port: Int)
 
 }

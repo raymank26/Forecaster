@@ -20,7 +20,7 @@ private final class MessageDispatcher extends Actor with ActorLogging with Utils
     private val commandRouter = context.actorOf(RoundRobinPool(5).props(Props[CommandProcessor]),
         "command-router")
 
-    private val inSettings: mutable.Map[Int, ActorRef] = collection.mutable.Map.empty[Int, ActorRef]
+    private val inSettings: mutable.Map[Int, ActorRef] = mutable.Map.empty[Int, ActorRef]
 
     override def receive: Receive = {
 
