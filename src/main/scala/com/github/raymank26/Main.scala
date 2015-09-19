@@ -20,7 +20,6 @@ object Main extends Api {
     implicit val materializer = ActorMaterializer()
 
     def main(args: Array[String]): Unit = {
-        println("Running migrations 0.1")
         FlywayManager.main(Array("migrate"))
         Database.init()
 

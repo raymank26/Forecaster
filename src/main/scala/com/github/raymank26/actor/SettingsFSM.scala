@@ -166,7 +166,7 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
     }
 
     private def setInitialState(): Unit = {
-        Database.getPreferences(conversation.chatId) match {
+        preferencesProvider.getPreferences(conversation.chatId) match {
             case Some(prefs) =>
                 conversation.requestProceed(prefs)
                 startWith(OnDecide, new Preferences.Builder)
@@ -217,14 +217,21 @@ private object SettingsFSM {
      */
     class Conversation(val chatId: Int) {
 
+        /**
+         * Asks user for changing preferences.
+         *
+         * @param prefs current saved preferences
+         */
         def requestProceed(prefs: Preferences): Unit = {
+            //@formatter:off
             Telegram.sendMessage(
                 s"""
-                   |Your preferences is:
-                   |1. Location - ${prefs.geo.latitude }, ${prefs.geo.longitude }
-                      |2. Language - ${prefs.language }
-                      |Do you want to replace them?
-            """.stripMargin, chatId, replyKeyboard = YesNoKeyboard)
+                    |Your preferences is:
+                    |1. Location - ${prefs.geo.latitude }, ${prefs.geo.longitude }
+                    |2. Language - ${prefs.language }
+                    |Do you want to replace them?
+                """.stripMargin, chatId, replyKeyboard = YesNoKeyboard)
+            //@formatter:on
         }
 
         /**
@@ -256,7 +263,8 @@ private object SettingsFSM {
          */
         def requestLanguage(): Unit =
             Telegram.sendMessage("The next is language", chatId,
-                replyKeyboard = Keyboard(buttons = Seq(Seq("en", "ru")), oneTimeKeyboard = true))
+                replyKeyboard = Keyboard(buttons = Seq(Seq(TextEn, TextRu)),
+                    oneTimeKeyboard = true))
 
         /**
          * Sends webcams' previews and sets special keyboard.

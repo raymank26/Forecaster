@@ -31,9 +31,9 @@ final class SettingsFSMTest extends AkkaSuite {
 
         override def sayRetry(state: SettingsState): Unit = self ! Retry(state)
 
-        override def requestLocation(): Unit = {
-            self ! Hello
-        }
+        override def requestLocation(): Unit = self ! Hello
+
+        override def requestProceed(prefs: Preferences): Unit = self ! RequestPrefs
 
         override def isWebcamNeeded(): Unit = self ! IsWebcamNeeded
     }
@@ -85,7 +85,7 @@ final class SettingsFSMTest extends AkkaSuite {
         settingsRef ! createTelegramMessage(Location(10, 11))
 
         expectMsg(RequestLanguage)
-        settingsRef ! createTelegramMessage(Text("ru"))
+        settingsRef ! createTelegramMessage(Text(SettingsFSM.TextRu))
 
         expectMsg(IsWebcamNeeded)
         settingsRef ! createTelegramMessage(Text(SettingsFSM.TextYes))
@@ -108,7 +108,7 @@ final class SettingsFSMTest extends AkkaSuite {
         settingsRef ! createTelegramMessage(Location(10, 11))
 
         expectMsg(RequestLanguage)
-        settingsRef ! createTelegramMessage(Text("ru"))
+        settingsRef ! createTelegramMessage(Text(SettingsFSM.TextRu))
 
         expectMsg(IsWebcamNeeded)
         settingsRef ! createTelegramMessage(Text(SettingsFSM.TextNo))
@@ -139,6 +139,8 @@ private object SettingsFSMTest {
     sealed trait ExpectedMessages
 
     case class Retry(state: SettingsState) extends ExpectedMessages
+
+    case object RequestPrefs extends ExpectedMessages
 
     case object Hello extends ExpectedMessages
 
