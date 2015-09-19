@@ -35,7 +35,8 @@ private final class CommandProcessor extends Actor with ActorLogging with Utils 
             if (commands.contains(command)) {
                 commands(command)(msg)
             } else {
-                Telegram.sendMessage("Command isn't supported. See /help", msg.from.chatId)
+                Telegram.sendMessage(s"Command isn't supported. Check $HelpCommand",
+                    msg.from.chatId)
             }
 
         case msg => messageIsNotSupported(msg)
@@ -58,7 +59,7 @@ private final class CommandProcessor extends Actor with ActorLogging with Utils 
         val chatId = from.chatId
 
         runAsFuture { () =>
-            Database.getPreferences(from) match {
+            Database.getPreferences(chatId) match {
                 case Some(prefs) => Forecast.sendForecast(prefs, chatId, when)
                 case None => preferencesRequired(chatId)
             }
@@ -68,7 +69,7 @@ private final class CommandProcessor extends Actor with ActorLogging with Utils 
     }
 
     private def preferencesRequired(chatId: Int): Unit = {
-        Telegram.sendMessage("Send to me your location firstly", chatId)
+        Telegram.sendMessage(s"I don't know you yet. Run $SettingsCommand.", chatId)
     }
 
     private def processHelp(msg: TelegramMessage): Unit = {
@@ -80,19 +81,21 @@ private object CommandProcessor {
 
     val CurrentCommand = "/current"
 
-    private val HelpMessage =
-        """
-          |I'm a forecast bot. The available commands are:
-          |1. /help - this message
-          |2. /current - current forecast
-          |3. /today - 12 messages of forward forecast
-          |3. /settings - redefine settings
-          |The author is @antonermak. Bot is powered by http://forecast.io and http://www.webcams.travel
-        """.stripMargin
-
     private val HelpCommand = "/help"
     private val SettingsCommand = "/settings"
     private val StartCommand = "/start"
     private val TodayCommand = "/today"
+
+    private val HelpMessage =
+    //@formatter:off
+        s"""
+          |I'm a forecast bot. The available commands are:
+          |1. $HelpCommand - this message
+          |2. $SettingsCommand - current forecast
+          |3. $TodayCommand - 12 messages of forward forecast
+          |3. $SettingsCommand - redefine settings
+          |The author is @antonermak. Bot is powered by http://forecast.io and http://www.webcams.travel
+        """.stripMargin
+    //@formatter:on
 
 }

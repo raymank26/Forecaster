@@ -15,11 +15,13 @@ object Database extends PreferencesProvider {
     private val UsersTableName = sqls"users"
     private val PreferencesTableName = sqls"preferences"
 
-    HikariDb.setSession()
+    def init(): Unit = {
+        HikariDb.setSession()
+    }
 
-    override def getPreferences(telegramUser: TelegramUser): Option[Preferences] = {
-        getUserDbId(telegramUser).flatMap { userId =>
-            getPreferences(userId).map(_._2)
+    override def getPreferences(chatId: Int): Option[Preferences] = {
+        getUserDbId(chatId).flatMap { userId =>
+            getPreferencesByDbId(userId).map(_._2)
         }
     }
 
@@ -28,7 +30,7 @@ object Database extends PreferencesProvider {
         saveOrUpdatePreferences(userId, prefs)
     }
 
-    private def getPreferences(userId: Int): Option[(Int, Preferences)] = {
+    private def getPreferencesByDbId(userId: Int): Option[(Int, Preferences)] = {
         DB readOnly { implicit session =>
             //@formatter:off
             sql"""select id, latitude, longitude, language, webcams_ids
@@ -54,10 +56,10 @@ object Database extends PreferencesProvider {
         (rs.int("id"), builder.build())
     }
 
-    private def getUserDbId(user: TelegramUser): Option[Int] = {
+    private def getUserDbId(chatId: Int): Option[Int] = {
         DB readOnly { implicit session =>
             sql"""select id from $UsersTableName where user_id = ?"""
-                .bind(user.chatId)
+                .bind(chatId)
                 .map(rs => rs.int("id"))
                 .single()
                 .apply()
@@ -65,7 +67,7 @@ object Database extends PreferencesProvider {
     }
 
     private def getUserOrSave(telegramUser: TelegramUser): Int = {
-        getUserDbId(telegramUser).getOrElse(saveUser(telegramUser))
+        getUserDbId(telegramUser.chatId).getOrElse(saveUser(telegramUser))
     }
 
     private def saveUser(user: TelegramUser): Int = {
@@ -81,7 +83,7 @@ object Database extends PreferencesProvider {
 
     private def saveOrUpdatePreferences(userId: Int,
                                         prefs: Preferences) = {
-        getPreferences(userId) match {
+        getPreferencesByDbId(userId) match {
             case Some((id, _)) => updatePreferences(id, prefs)
             case None =>
                 val latitude = prefs.geo.latitude

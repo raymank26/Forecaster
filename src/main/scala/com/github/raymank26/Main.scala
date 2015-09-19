@@ -1,6 +1,7 @@
 package com.github.raymank26
 
 import com.github.raymank26.actor.MessageDispatcher
+import com.github.raymank26.db.{Database, FlywayManager}
 import com.github.raymank26.model.telegram.TelegramMessage
 
 import akka.actor.ActorSystem
@@ -19,6 +20,9 @@ object Main extends Api {
     implicit val materializer = ActorMaterializer()
 
     def main(args: Array[String]): Unit = {
+        println("Running migrations 0.1")
+        FlywayManager.main(Array("migrate"))
+        Database.init()
 
         val (host, port) = ConfigManager.getHostAndPort
 

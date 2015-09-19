@@ -12,10 +12,10 @@ trait PreferencesProvider {
      * Returns forecast preferences of [[com.github.raymank26.model.telegram.TelegramUser]]
      * instance if possible.
      *
-     * @param telegramUser user instance
+     * @param chatId user's telegram identifier
      * @return forecast preferences option
      */
-    def getPreferences(telegramUser: TelegramUser): Option[Preferences]
+    def getPreferences(chatId: Int): Option[Preferences]
 
     /**
      * Saves forecast preferences

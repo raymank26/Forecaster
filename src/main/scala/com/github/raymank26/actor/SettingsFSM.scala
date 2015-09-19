@@ -1,6 +1,7 @@
 package com.github.raymank26.actor
 
 import com.github.raymank26.actor.MessageDispatcher.SettingsSaved
+import com.github.raymank26.actor.SettingsFSM.Conversation.YesNoKeyboard
 import com.github.raymank26.actor.SettingsFSM._
 import com.github.raymank26.controller.Telegram.Keyboard
 import com.github.raymank26.controller.{Telegram, Webcams}
@@ -27,16 +28,26 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
 
     private var webcams: WebcamPreviewList = _
 
-    startWith(OnHello, new Preferences.Builder)
+    setInitialState()
 
     log.debug(s"initial state, chat_id = ${conversation.chatId }")
 
-    conversation.sayHello()
+    when(OnDecide) {
+        case Event(TelegramMessage(_, _, _, msg: Text), data) =>
+            msg.text match {
+                case TextYes => goto(OnProceed)
+                case TextNo =>
+                    self ! NormalExit
+                    goto(OnEnd)
+                case _ => repeat()
+            }
+        case _ => repeat()
+    }
 
     /**
      * Waiting for location.
      */
-    when(OnHello) {
+    when(OnProceed) {
         case Event(msg: TelegramMessage, data) if msg.isLocation =>
             log.debug(s"location received $msg")
 
@@ -107,12 +118,15 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
         case Event(user: TelegramUser, data) =>
             preferencesProvider.savePreferences(user, data.build())
             parent ! SettingsSaved(conversation.chatId)
-            context.stop(self)
-            stay()
+            selfStop()
+        case Event(NormalExit, data) =>
+            parent ! SettingsSaved(conversation.chatId)
+            selfStop()
     }
 
     onTransition {
-        case OnHello -> OnLocation => conversation.requestLanguage()
+        case OnDecide -> OnProceed => conversation.requestLocation()
+        case OnProceed -> OnLocation => conversation.requestLanguage()
         case OnLocation -> IsWebcamNeeded =>
             conversation.isWebcamNeeded()
         case IsWebcamNeeded -> OnWebcam =>
@@ -148,6 +162,22 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
     private def repeat(): State = {
         log.debug("illegal message received")
         conversation.sayRetry(stateName)
+        stay()
+    }
+
+    private def setInitialState(): Unit = {
+        Database.getPreferences(conversation.chatId) match {
+            case Some(prefs) =>
+                conversation.requestProceed(prefs)
+                startWith(OnDecide, new Preferences.Builder)
+            case None =>
+                conversation.requestLocation()
+                startWith(OnProceed, new Preferences.Builder)
+        }
+    }
+
+    private def selfStop(): State = {
+        context.stop(self)
         stay()
     }
 }
@@ -187,25 +217,38 @@ private object SettingsFSM {
      */
     class Conversation(val chatId: Int) {
 
+        def requestProceed(prefs: Preferences): Unit = {
+            Telegram.sendMessage(
+                s"""
+                   |Your preferences is:
+                   |1. Location - ${prefs.geo.latitude }, ${prefs.geo.longitude }
+                      |2. Language - ${prefs.language }
+                      |Do you want to replace them?
+            """.stripMargin, chatId, replyKeyboard = YesNoKeyboard)
+        }
+
         /**
          * Welcome message.
          */
-        def sayHello(): Unit =
-            Telegram.sendMessage("Firstly, send me your location settings", chatId)
+        def requestLocation(): Unit =
+            Telegram.sendMessage(
+                """Ok, send me your location settings.
+                  |You can find this feature inside attachments tab.
+                """.stripMargin, chatId)
 
         /**
          * Handler for mistaken input
          * @param state current [[SettingsFSM]] state.
          */
         def sayRetry(state: SettingsState): Unit = {
-            Telegram.sendMessage("Try another one", chatId)
+            Telegram.sendMessage("Sorry, I don't understand you", chatId)
         }
 
         /**
          * Requests another webcam.
          */
         def requestAnotherWebcam(): Unit = {
-            Telegram.sendMessageAndPreserveKeyboard("Another one?", chatId)
+            Telegram.sendMessageAndPreserveKeyboard("One more? If not, press \"Stop\".", chatId)
         }
 
         /**
@@ -237,8 +280,7 @@ private object SettingsFSM {
          * Checks if the user want to receive webcams previews near to current location
          */
         def isWebcamNeeded(): Unit = {
-            Telegram.sendMessage("Do you want to see webcams nearly?", chatId,
-                Telegram.Keyboard(Seq(Seq(TextYes, TextNo)), oneTimeKeyboard = true))
+            Telegram.sendMessage("Do you want to see webcams nearly?", chatId, YesNoKeyboard)
         }
 
         /**
@@ -249,7 +291,14 @@ private object SettingsFSM {
         }
     }
 
-    case object OnHello extends SettingsState
+    object Conversation {
+        private val YesNoKeyboard = Telegram.Keyboard(Seq(Seq(TextYes, TextNo)),
+            oneTimeKeyboard = true)
+    }
+
+    case object OnDecide extends SettingsState
+
+    case object OnProceed extends SettingsState
 
     case object OnLocation extends SettingsState
 
@@ -260,5 +309,7 @@ private object SettingsFSM {
     case object OnWebcam extends SettingsState
 
     case object OnEnd extends SettingsState
+
+    object NormalExit
 
 }

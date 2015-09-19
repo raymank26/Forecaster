@@ -31,7 +31,7 @@ final class SettingsFSMTest extends AkkaSuite {
 
         override def sayRetry(state: SettingsState): Unit = self ! Retry(state)
 
-        override def sayHello(): Unit = {
+        override def requestLocation(): Unit = {
             self ! Hello
         }
 
@@ -51,8 +51,7 @@ final class SettingsFSMTest extends AkkaSuite {
             prefs.webcams should have length lengthValue
         }
 
-        override def getPreferences(telegramUser: TelegramUser): Option[Preferences] = None
-
+        override def getPreferences(chatId: Int): Option[Preferences] = None
     }
 
     test("plain workflow") {
@@ -82,7 +81,7 @@ final class SettingsFSMTest extends AkkaSuite {
         expectMsg(Hello)
         settingsRef ! createTelegramMessage(Text("error input"))
 
-        expectMsg(Retry(SettingsFSM.OnHello))
+        expectMsg(Retry(SettingsFSM.OnProceed))
         settingsRef ! createTelegramMessage(Location(10, 11))
 
         expectMsg(RequestLanguage)
@@ -105,7 +104,7 @@ final class SettingsFSMTest extends AkkaSuite {
         expectMsg(Hello)
         settingsRef ! createTelegramMessage(Text("error input"))
 
-        expectMsg(Retry(SettingsFSM.OnHello))
+        expectMsg(Retry(SettingsFSM.OnProceed))
         settingsRef ! createTelegramMessage(Location(10, 11))
 
         expectMsg(RequestLanguage)
