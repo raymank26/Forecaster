@@ -1,7 +1,7 @@
-FROM 1science/sbt
+From java:8
 
-COPY ./target/universal/stage/ /app
+COPY ./stage/ /app
 
 WORKDIR /app
 
-CMD ./bin/forecaster
+CMD /app/bin/forecaster

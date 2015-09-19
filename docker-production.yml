@@ -11,5 +11,5 @@ db:
     extends:
         file: common.yml
         service: db
-    ports:
-        - "5555:5432"
+    volumes:
+        - ./postgres:/var/lib/postgresql/data

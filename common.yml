@@ -1,0 +1,9 @@
+app:
+    build: .
+    dockerfile: Dockerfile.app
+    container_name: forecast-app
+
+db:
+    build: .
+    dockerfile: Dockerfile.postgres
+    container_name: forecast-db
