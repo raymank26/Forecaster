@@ -10,7 +10,7 @@ import com.github.raymank26.model.Preferences
 import com.github.raymank26.model.Preferences.{Location => GeoLocation}
 import com.github.raymank26.model.telegram.TelegramMessage.{Location, Text}
 import com.github.raymank26.model.telegram.{TelegramMessage, TelegramUser}
-import com.github.raymank26.model.webcams.WebcamPreviewList
+import com.github.raymank26.model.webcam.WebcamPreviewList
 
 import akka.actor.{Actor, ActorRef, ActorRefFactory, FSM, Props}
 

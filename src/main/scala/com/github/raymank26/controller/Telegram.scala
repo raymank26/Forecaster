@@ -1,8 +1,8 @@
 package com.github.raymank26.controller
 
 import com.github.raymank26.ConfigManager
-import com.github.raymank26.adapters.telegram.TelegramKeyboardAdapter
-import com.github.raymank26.model.webcams.WebcamPreviewList
+import com.github.raymank26.adapter.telegram.TelegramKeyboardAdapter
+import com.github.raymank26.model.webcam.WebcamPreviewList
 
 import spray.json._
 
@@ -50,7 +50,8 @@ object Telegram {
     private def prepareSendMessage(text: String, chatId: Int) = {
         val params: Map[String, String] = Map(
             "chat_id" -> chatId.toString,
-            "text" -> text
+            "text" -> text,
+            "disable_web_page_preview" -> "true"
         )
         prepareRequest("sendMessage", params).postForm
     }

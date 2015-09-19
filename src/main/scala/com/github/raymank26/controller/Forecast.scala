@@ -1,6 +1,6 @@
 package com.github.raymank26.controller
 
-import com.github.raymank26.adapters.forecast.WeatherAdapter
+import com.github.raymank26.adapter.forecast.WeatherAdapter
 import com.github.raymank26.model.Preferences
 import com.github.raymank26.model.Preferences.Location
 import com.github.raymank26.model.forecast.DataPoint.IconType.{ClearDay, ClearNight, Cloudy, Icon, Rain, Sleet, Snow}

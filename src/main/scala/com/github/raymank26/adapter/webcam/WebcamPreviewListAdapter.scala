@@ -1,6 +1,6 @@
-package com.github.raymank26.adapters.webcams
+package com.github.raymank26.adapter.webcam
 
-import com.github.raymank26.model.webcams.{Webcam, WebcamPreviewList}
+import com.github.raymank26.model.webcam.{Webcam, WebcamPreviewList}
 
 import spray.json.DefaultJsonProtocol._
 import spray.json.{JsArray, JsValue, RootJsonReader}

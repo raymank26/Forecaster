@@ -1,6 +1,6 @@
 package com.github.raymank26
 
-import com.github.raymank26.adapters.telegram.UpdateAdapter
+import com.github.raymank26.adapter.telegram.UpdateAdapter
 import com.github.raymank26.model.telegram.{TelegramMessage, TelegramUpdate}
 
 import akka.actor.ActorSystem

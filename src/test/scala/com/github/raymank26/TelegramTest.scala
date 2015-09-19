@@ -1,6 +1,6 @@
 package com.github.raymank26
 
-import com.github.raymank26.adapters.telegram.TelegramMessageAdapter
+import com.github.raymank26.adapter.telegram.TelegramMessageAdapter
 import com.github.raymank26.model.telegram.TelegramMessage
 
 import spray.json.JsonParser

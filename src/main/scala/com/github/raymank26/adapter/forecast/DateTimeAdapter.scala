@@ -1,4 +1,4 @@
-package com.github.raymank26.adapters.forecast
+package com.github.raymank26.adapter.forecast
 
 import org.joda.time.DateTime
 import spray.json.DefaultJsonProtocol._

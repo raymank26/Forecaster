@@ -1,9 +1,9 @@
 package com.github.raymank26.controller
 
 import com.github.raymank26.ConfigManager
-import com.github.raymank26.adapters.webcams.WebcamPreviewListAdapter
+import com.github.raymank26.adapter.webcam.WebcamPreviewListAdapter
 import com.github.raymank26.model.Preferences.Location
-import com.github.raymank26.model.webcams.WebcamPreviewList
+import com.github.raymank26.model.webcam.WebcamPreviewList
 
 import spray.json._
 

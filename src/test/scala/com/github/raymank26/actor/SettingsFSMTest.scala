@@ -9,7 +9,7 @@ import com.github.raymank26.model.Preferences
 import com.github.raymank26.model.Preferences.{Location => GeoLocation}
 import com.github.raymank26.model.telegram.TelegramMessage.{Location, Text}
 import com.github.raymank26.model.telegram.{TelegramMessage, TelegramUser}
-import com.github.raymank26.model.webcams.{Webcam, WebcamPreviewList}
+import com.github.raymank26.model.webcam.{Webcam, WebcamPreviewList}
 
 import akka.actor.ActorRef
 import org.joda.time.DateTime

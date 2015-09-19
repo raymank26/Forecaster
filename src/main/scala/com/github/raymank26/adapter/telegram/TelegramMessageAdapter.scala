@@ -1,6 +1,6 @@
-package com.github.raymank26.adapters.telegram
+package com.github.raymank26.adapter.telegram
 
-import com.github.raymank26.adapters.forecast.DateTimeAdapter
+import com.github.raymank26.adapter.forecast.DateTimeAdapter
 import com.github.raymank26.model.telegram.{TelegramMessage, TelegramUser}
 
 import org.joda.time.DateTime

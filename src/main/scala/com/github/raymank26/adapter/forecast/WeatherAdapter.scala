@@ -1,4 +1,4 @@
-package com.github.raymank26.adapters.forecast
+package com.github.raymank26.adapter.forecast
 
 import com.github.raymank26.model.forecast.{DataBlock, DataPoint, Weather}
 
