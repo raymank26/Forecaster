@@ -117,10 +117,8 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
     when(OnEnd) {
         case Event(user: TelegramUser, data) =>
             preferencesProvider.savePreferences(user, data.build())
-            parent ! SettingsSaved(conversation.chatId)
             selfStop()
         case Event(NormalExit, data) =>
-            parent ! SettingsSaved(conversation.chatId)
             selfStop()
     }
 
@@ -177,6 +175,7 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
     }
 
     private def selfStop(): State = {
+        parent ! SettingsSaved(conversation.chatId)
         context.stop(self)
         stay()
     }

@@ -4,8 +4,7 @@ import com.github.raymank26.actor.MessageDispatcher.{SettingsSaved, WantSettings
 import com.github.raymank26.controller.Telegram
 import com.github.raymank26.model.telegram.TelegramMessage
 
-import akka.actor.SupervisorStrategy.Stop
-import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, OneForOneStrategy, Props, SupervisorStrategy}
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
 import akka.routing.RoundRobinPool
 
 import scala.collection.mutable
@@ -41,14 +40,9 @@ private final class MessageDispatcher extends Actor with ActorLogging with Utils
         case msg => messageIsNotSupported(msg)
     }
 
-    override def supervisorStrategy: SupervisorStrategy = OneForOneStrategy() {
-        case _: Exception => Stop
-    }
-
     private def unsupportedMessage(msg: TelegramMessage): Unit = {
         log.warning(s"no such handler for $msg")
         Telegram.sendMessage("I don't understand you", msg.from.chatId)
-
     }
 }
 
