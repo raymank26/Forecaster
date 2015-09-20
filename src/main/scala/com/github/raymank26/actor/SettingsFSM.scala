@@ -197,9 +197,9 @@ private object SettingsFSM {
     val TextYes = "Yes"
     val TextNo = "No"
 
-    def apply(chatId: Int, parent: ActorRef, context: ActorRefFactory) = {
-        context.actorOf(Props(classOf[SettingsFSM], parent, new Conversation(chatId),
-            new WebcamProvider, Database))
+    def apply(chatId: Int, parent: ActorRef): Props = {
+        Props(classOf[SettingsFSM], parent, new Conversation(chatId),
+            new WebcamProvider, Database)
     }
 
     def apply(parent: ActorRef, context: ActorRefFactory, conversation: Conversation,

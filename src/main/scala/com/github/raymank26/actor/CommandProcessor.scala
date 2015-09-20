@@ -7,7 +7,7 @@ import com.github.raymank26.db.Database
 import com.github.raymank26.model.telegram.TelegramMessage
 import com.github.raymank26.model.telegram.TelegramMessage.Text
 
-import akka.actor.{Actor, ActorLogging}
+import akka.actor.{Actor, ActorLogging, PoisonPill}
 
 import scala.collection.immutable.HashMap
 
@@ -38,8 +38,7 @@ private final class CommandProcessor extends Actor with ActorLogging with Utils 
                 Telegram.sendMessage(s"Command isn't supported. Check $HelpCommand",
                     msg.from.chatId)
             }
-
-        case msg => messageIsNotSupported(msg)
+            self ! PoisonPill
     }
 
     private def processStart(msg: TelegramMessage): Unit = {

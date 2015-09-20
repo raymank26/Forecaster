@@ -5,7 +5,6 @@ import com.github.raymank26.controller.Telegram
 import com.github.raymank26.model.telegram.TelegramMessage
 
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
-import akka.routing.RoundRobinPool
 
 import scala.collection.mutable
 
@@ -15,9 +14,6 @@ import scala.collection.mutable
  * @author Anton Ermak
  */
 private final class MessageDispatcher extends Actor with ActorLogging with Utils {
-
-    private val commandRouter = context.actorOf(RoundRobinPool(5).props(Props[CommandProcessor]),
-        "command-router")
 
     private val inSettings: mutable.Map[Int, ActorRef] = mutable.Map.empty[Int, ActorRef]
 
@@ -30,12 +26,18 @@ private final class MessageDispatcher extends Actor with ActorLogging with Utils
             inSettings.remove(chatId)
 
         case msg: TelegramMessage => msg.content match {
-            case txt: TelegramMessage.Text if txt.text.startsWith("/") => commandRouter ! msg
+            case txt: TelegramMessage.Text if txt.text.startsWith("/") =>
+                context.actorOf(MessageSupervisor.apply(msg.from.chatId,
+                    Props[CommandProcessor])) ! msg
             case _ => unsupportedMessage(msg)
         }
 
         case WantSettings(chatId) =>
-            inSettings(chatId) = SettingsFSM(chatId, self, context)
+            inSettings(chatId) = context.actorOf(MessageSupervisor.apply(chatId,
+                SettingsFSM(chatId, self)))
+
+        case MessageSupervisor.CloseForwarding(chatId) =>
+            inSettings.remove(chatId)
 
         case msg => messageIsNotSupported(msg)
     }
