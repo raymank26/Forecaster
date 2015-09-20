@@ -21,7 +21,7 @@ final class SettingsFSMTest extends AkkaSuite {
 
     private val mockedConversation = new Conversation(ChatId) {
 
-        override def sayGoodbye(): Unit = self ! SayGoodbye
+        override def sayGoodbye(saved: Boolean): Unit = self ! SayGoodbye
 
         override def requestWebcams(webcams: WebcamPreviewList): Unit = self ! RequestWebcams
 

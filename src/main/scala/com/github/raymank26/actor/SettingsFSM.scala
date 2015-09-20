@@ -136,8 +136,10 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
             conversation.isWebcamNeeded()
         case IsWebcamNeeded -> OnWebcam =>
             conversation.requestWebcams(webcams)
+        case OnDecide -> OnEnd =>
+            conversation.sayGoodbye(saved = false)
         case _ -> OnEnd =>
-            conversation.sayGoodbye()
+            conversation.sayGoodbye(saved = true)
         // remove actor. Notify watcher
         case a -> b =>
             log.warning(s"No transition from $a to $b")
@@ -303,8 +305,13 @@ private object SettingsFSM {
         /**
          * Sends goodbye message.
          */
-        def sayGoodbye(): Unit = {
-            Telegram.sendMessage(s"Saved! Try to use ${CommandProcessor.CurrentCommand }", chatId)
+        def sayGoodbye(saved: Boolean): Unit = {
+            if (saved) {
+                Telegram.sendMessage(s"Saved! Try to use ${CommandProcessor.CurrentCommand }.",
+                    chatId)
+            } else {
+                Telegram.sendMessage("Good.", chatId)
+            }
         }
     }
 
