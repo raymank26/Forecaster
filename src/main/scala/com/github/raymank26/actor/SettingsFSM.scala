@@ -76,8 +76,15 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
         case Event(TelegramMessage(_, from, _, msg: Text), data) =>
             msg.text match {
                 case TextYes =>
+                    webcams = webcamProvider(stateData.geo)
                     log.debug(s"Webcams is needed $msg")
-                    goto(OnWebcam)
+                    if (webcams.webcams.isEmpty) {
+                        conversation.noWebcamsFound()
+                        self ! from
+                        goto(OnEnd)
+                    } else {
+                        goto(OnWebcam)
+                    }
                 case TextNo =>
                     log.debug(s"Webcams isn't needed $msg")
                     self ! from
@@ -128,7 +135,6 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
         case OnLocation -> IsWebcamNeeded =>
             conversation.isWebcamNeeded()
         case IsWebcamNeeded -> OnWebcam =>
-            webcams = webcamProvider(stateData.geo)
             conversation.requestWebcams(webcams)
         case _ -> OnEnd =>
             conversation.sayGoodbye()
@@ -281,6 +287,10 @@ private object SettingsFSM {
             Telegram.sendWebcamPreviews(webcams, chatId)
             Telegram.sendMessage("Which one?", chatId,
                 replyKeyboard = Keyboard(keyboardButtons, oneTimeKeyboard = true))
+        }
+
+        def noWebcamsFound(): Unit = {
+            Telegram.sendMessage("Unfortunately, I can't find any webcams near to you.", chatId)
         }
 
         /**

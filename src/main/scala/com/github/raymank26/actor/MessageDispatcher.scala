@@ -27,7 +27,7 @@ private final class MessageDispatcher extends Actor with ActorLogging with Utils
             inSettings(msg.from.chatId) ! msg
 
         case SettingsSaved(chatId) =>
-            inSettings.remove(chatId).get
+            inSettings.remove(chatId)
 
         case msg: TelegramMessage => msg.content match {
             case txt: TelegramMessage.Text if txt.text.startsWith("/") => commandRouter ! msg
