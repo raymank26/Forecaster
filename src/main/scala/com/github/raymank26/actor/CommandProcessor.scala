@@ -21,11 +21,11 @@ private final class CommandProcessor extends Actor with ActorLogging with Utils 
     import context.dispatcher
 
     private val commands: Map[String, TelegramMessage => Unit] = HashMap(
-        CurrentCommand -> processForecast(Currently) _,
-        TodayCommand -> processForecast(Today) _,
-        HelpCommand -> processHelp _,
-        SettingsCommand -> processSettings _,
-        StartCommand -> processStart _
+        CommandCurrent -> processForecast(Currently) _,
+        CommandToday -> processForecast(Today) _,
+        CommandHelp -> processHelp _,
+        CommandSettings -> processSettings _,
+        CommandStart -> processStart _
     )
 
     override def receive: Receive = {
@@ -35,7 +35,7 @@ private final class CommandProcessor extends Actor with ActorLogging with Utils 
             if (commands.contains(command)) {
                 commands(command)(msg)
             } else {
-                Telegram.sendMessage(s"Command isn't supported. Check $HelpCommand",
+                Telegram.sendMessage(s"Command isn't supported. Check $CommandHelp",
                     msg.from.chatId)
             }
             self ! PoisonPill
@@ -68,7 +68,7 @@ private final class CommandProcessor extends Actor with ActorLogging with Utils 
     }
 
     private def preferencesRequired(chatId: Int): Unit = {
-        Telegram.sendMessage(s"I don't know you yet. Run $SettingsCommand.", chatId)
+        Telegram.sendMessage(s"I don't know you yet. Run $CommandSettings.", chatId)
     }
 
     private def processHelp(msg: TelegramMessage): Unit = {
@@ -78,21 +78,21 @@ private final class CommandProcessor extends Actor with ActorLogging with Utils 
 
 private object CommandProcessor {
 
-    val CurrentCommand = "/current"
+    val CommandCurrent = "/current"
 
-    private val HelpCommand = "/help"
-    private val SettingsCommand = "/settings"
-    private val StartCommand = "/start"
-    private val TodayCommand = "/today"
+    private val CommandHelp = "/help"
+    private val CommandSettings = "/settings"
+    private val CommandStart = "/start"
+    private val CommandToday = "/today"
 
     private val HelpMessage =
     //@formatter:off
         s"""
           |I'm a forecast bot. The available commands are:
-          |1. $HelpCommand - this message
-          |2. $SettingsCommand - current forecast
-          |3. $TodayCommand - 12 messages of forward forecast
-          |3. $SettingsCommand - redefine settings
+          |1. $CommandHelp - this message
+          |2. $CommandCurrent - current forecast
+          |3. $CommandToday - 12 messages of forward forecast
+          |3. $CommandSettings - redefine settings
           |The author is @antonermak. Bot is powered by http://forecast.io and http://www.webcams.travel
         """.stripMargin
     //@formatter:on

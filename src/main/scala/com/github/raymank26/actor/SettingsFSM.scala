@@ -19,11 +19,12 @@ import scala.util.Try
 /**
  * This actor builds [[Preferences]] instance from quiz-like questions and answers.
  *
- * @author Anton Ermak.
+ * @author Anton Ermak
  */
 private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
                                 webcamProvider: WebcamProvider,
                                 preferencesProvider: PreferencesProvider)
+
     extends Actor with FSM[SettingsState, Preferences.Builder] {
 
     private var webcams: WebcamPreviewList = _
@@ -159,7 +160,7 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
         def isNumber(str: String): Boolean = Try(str.toInt).toOption.isDefined
 
         msg.content match {
-            case Text(str) if isNumber(str) => Right(Some(str.toInt))
+            case Text(str) if isNumber(str) => Right(Some(str.toInt - 1))
             case Text(TextStop) => Right(None)
             case _ => Left(())
         }
@@ -187,6 +188,7 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
         context.stop(self)
         stay()
     }
+
 }
 
 private object SettingsFSM {
@@ -223,6 +225,8 @@ private object SettingsFSM {
      * @param chatId interlocutor's id
      */
     class Conversation(val chatId: Int) {
+
+        private var webcamKeyboard: Keyboard = _
 
         /**
          * Asks user for changing preferences.
@@ -262,7 +266,7 @@ private object SettingsFSM {
          * Requests another webcam.
          */
         def requestAnotherWebcam(): Unit = {
-            Telegram.sendMessageAndPreserveKeyboard("One more? If not, press \"Stop\".", chatId)
+            Telegram.sendMessage("One more? If not, press \"Stop\".", chatId, webcamKeyboard)
         }
 
         /**
@@ -279,16 +283,9 @@ private object SettingsFSM {
          * @param webcams available webcams based on current user's location
          */
         def requestWebcams(webcams: WebcamPreviewList): Unit = {
-            val len = webcams.webcams.length
-            val keyboardButtons = Seq
-                .iterate(0, len) { _ + 1 }
-                .map(_.toString)
-                .:+("Stop")
-                .grouped(len / 2)
-                .toSeq
+            setKeyboard(webcams)
             Telegram.sendWebcamPreviews(webcams, chatId)
-            Telegram.sendMessage("Which one?", chatId,
-                replyKeyboard = Keyboard(keyboardButtons, oneTimeKeyboard = true))
+            Telegram.sendMessage("Which one?", chatId, replyKeyboard = webcamKeyboard)
         }
 
         def noWebcamsFound(): Unit = {
@@ -307,11 +304,23 @@ private object SettingsFSM {
          */
         def sayGoodbye(saved: Boolean): Unit = {
             if (saved) {
-                Telegram.sendMessage(s"Saved! Try to use ${CommandProcessor.CurrentCommand }.",
+                Telegram.sendMessage(
+                    s"Settings is saved. Try to use ${CommandProcessor.CommandCurrent }.",
                     chatId)
             } else {
                 Telegram.sendMessage("Good.", chatId)
             }
+        }
+
+        private def setKeyboard(webcams: WebcamPreviewList): Unit = {
+            val len = webcams.webcams.length
+            val keyboardButtons = Seq
+                .iterate(1, len) { _ + 1 }
+                .map(_.toString)
+                .:+(TextStop)
+                .grouped(len / 2)
+                .toSeq
+            webcamKeyboard = Keyboard(keyboardButtons, oneTimeKeyboard = true)
         }
     }
 
