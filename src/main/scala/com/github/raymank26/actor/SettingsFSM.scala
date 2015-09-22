@@ -54,18 +54,6 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
 
             val location = msg.content.asInstanceOf[Location]
             data.setGeo(GeoLocation(location.latitude, location.longitude))
-            goto(OnLocation).using(data)
-        case _ => repeat()
-    }
-
-    /**
-     * Waiting for language.
-     */
-    when(OnLocation) {
-        case Event(msg: TelegramMessage, data) if getLanguage(msg).isDefined =>
-            log.debug(s"language received $msg")
-
-            data.setLanguage(getLanguage(msg).get)
             goto(IsWebcamNeeded).using(data)
         case _ => repeat()
     }
@@ -90,6 +78,7 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
                     log.debug(s"Webcams isn't needed $msg")
                     self ! from
                     goto(OnEnd)
+                case _ => repeat()
             }
         case _ => repeat()
     }
@@ -132,8 +121,7 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
 
     onTransition {
         case OnDecide -> OnProceed => conversation.requestLocation()
-        case OnProceed -> OnLocation => conversation.requestLanguage()
-        case OnLocation -> IsWebcamNeeded =>
+        case OnProceed -> IsWebcamNeeded =>
             conversation.isWebcamNeeded()
         case IsWebcamNeeded -> OnWebcam =>
             conversation.requestWebcams(webcams)
@@ -147,14 +135,6 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
     }
 
     initialize()
-
-    private def getLanguage(msg: TelegramMessage): Option[String] = {
-        msg.content match {
-            case msg @ Text(TextRu) => Some(msg.text)
-            case msg @ Text(TextEn) => Some(msg.text)
-            case _ => None
-        }
-    }
 
     private def getWebcamIdentifier(msg: TelegramMessage): Either[Unit, Option[Int]] = {
         def isNumber(str: String): Boolean = Try(str.toInt).toOption.isDefined
@@ -195,9 +175,6 @@ private object SettingsFSM {
 
     val TextStop = "Stop"
 
-    val TextEn = "en"
-    val TextRu = "ru"
-
     val TextYes = "Yes"
     val TextNo = "No"
 
@@ -234,12 +211,16 @@ private object SettingsFSM {
          * @param prefs current saved preferences
          */
         def requestProceed(prefs: Preferences): Unit = {
+            val howManyWebcams = prefs.webcams.length match {
+                case 0 => "no"
+                case n => n
+            }
             //@formatter:off
             Telegram.sendMessage(
                 s"""
                     |Your preferences is:
-                    |1. Location - ${prefs.geo.latitude }, ${prefs.geo.longitude }
-                    |2. Language - ${prefs.language }
+                    |1. Location - ${prefs.geo.latitude }, ${prefs.geo.longitude}
+                    |2. Webcams list contains $howManyWebcams items
                     |Do you want to replace them?
                 """.stripMargin, chatId, replyKeyboard = YesNoKeyboard)
             //@formatter:on
@@ -268,14 +249,6 @@ private object SettingsFSM {
         def requestAnotherWebcam(): Unit = {
             Telegram.sendMessage("One more? If not, press \"Stop\".", chatId, webcamKeyboard)
         }
-
-        /**
-         * Requests language.
-         */
-        def requestLanguage(): Unit =
-            Telegram.sendMessage("The next is language", chatId,
-                replyKeyboard = Keyboard(buttons = Seq(Seq(TextEn, TextRu)),
-                    oneTimeKeyboard = true))
 
         /**
          * Sends webcams' previews and sets special keyboard.

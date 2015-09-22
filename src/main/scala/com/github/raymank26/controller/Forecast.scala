@@ -39,7 +39,7 @@ object Forecast {
      */
     def sendForecast(prefs: Preferences, chatId: Int, period: Period): Unit = {
 
-        val forecast = Forecast.getCurrentForecast(prefs.geo, prefs.language)
+        val forecast = Forecast.getCurrentForecast(prefs.geo)
         if (period == Currently && prefs.webcams.nonEmpty) {
             val previews = Webcams.getLinks(prefs.geo, prefs.webcams)
             Telegram.sendWebcamPreviews(previews, chatId)
@@ -53,8 +53,8 @@ object Forecast {
         }
     }
 
-    private def getCurrentForecast(settings: Location, lang: String): Weather = {
-        parseResponse(makeRequest(settings, lang).body)
+    private def getCurrentForecast(settings: Location): Weather = {
+        parseResponse(makeRequest(settings).body)
     }
 
     private def serializeIcon(icon: Icon): String = {
@@ -87,7 +87,7 @@ object Forecast {
         body.parseJson.convertTo[Weather]
     }
 
-    private def makeRequest(settings: Location, lang: String) = {
+    private def makeRequest(settings: Location) = {
         val url =
             s"""https://api.forecast.io/
                |forecast/$forecastApiKey/${settings.latitude},${settings.longitude}"""
@@ -95,7 +95,6 @@ object Forecast {
 
         scalaj.http.Http(url)
             .param("units", "si")
-            .param("lang", lang.toLowerCase)
             .asString
     }
 

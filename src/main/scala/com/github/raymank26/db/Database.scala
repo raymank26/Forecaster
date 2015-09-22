@@ -33,7 +33,7 @@ object Database extends PreferencesProvider {
     private def getPreferencesByDbId(userId: Int): Option[(Int, Preferences)] = {
         DB readOnly { implicit session =>
             //@formatter:off
-            sql"""select id, latitude, longitude, language, webcams_ids
+            sql"""select id, latitude, longitude, webcams_ids
                  |from $PreferencesTableName where user_id = ?""".stripMargin
                 .bind(userId)
                 .map(rs => mapRsToForecast(rs))
@@ -46,7 +46,6 @@ object Database extends PreferencesProvider {
     private def mapRsToForecast(rs: WrappedResultSet): (Int, Preferences) = {
         val builder = new Preferences.Builder
 
-        builder.setLanguage(rs.string("language"))
         builder.setGeo(Location(rs.double("latitude"), rs.double("longitude")))
 
         rs.array("webcams_ids").getArray.asInstanceOf[Array[String]].foreach { item =>
@@ -74,9 +73,11 @@ object Database extends PreferencesProvider {
         DB localTx { implicit session =>
             //@formatter:off
             sql"""insert into $UsersTableName (username, user_id)
-                 |values (${user.username }, ${user.chatId})""".stripMargin
-                .update()
+                  |values (${user.username}, ${user.chatId})
+                """.stripMargin
+                .updateAndReturnGeneratedKey()
                 .apply()
+                .toInt
             //@formatter:on
         }
     }
@@ -88,13 +89,12 @@ object Database extends PreferencesProvider {
             case None =>
                 val latitude = prefs.geo.latitude
                 val longitude = prefs.geo.longitude
-                val language = prefs.language
                 val webcams = prefs.webcams.toArray
                 DB localTx { implicit session =>
                     //@formatter:off
                     sql"""insert into $PreferencesTableName
-                         |(user_id, message_datetime, latitude, longitude, language, webcams_ids)
-                         |values ($userId, ${DateTime.now}, $latitude, $longitude, $language::lang,
+                         |(user_id, message_datetime, latitude, longitude, webcams_ids)
+                         |values ($userId, ${DateTime.now}, $latitude, $longitude,
                          |${session.connection.createArrayOf("varchar", webcams.toArray)})"""
                         .stripMargin
                         .update()
@@ -111,7 +111,6 @@ object Database extends PreferencesProvider {
             sql"""|update $PreferencesTableName set
                   |latitude = ${prefs.geo.latitude},
                   |longitude = ${prefs.geo.longitude},
-                  |language = ${prefs.language}::lang,
                   |webcams_ids = ${session.connection.createArrayOf("varchar", prefs.webcams.toArray)}
                   |where id = $rowId"""
                 .stripMargin

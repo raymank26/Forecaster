@@ -7,19 +7,15 @@ import scala.collection.mutable.ArrayBuffer
 /**
  * @author Anton Ermak
  */
-case class Preferences private(language: String, geo: Location, webcams: Seq[String])
+case class Preferences private(geo: Location, webcams: Seq[String])
 
 object Preferences {
 
     class Builder() {
-        var geo: Location = _
-        private var language: String = _
-        private var webcams = ArrayBuffer[String]()
 
-        def setLanguage(language: String): Builder = {
-            this.language = language
-            this
-        }
+        var geo: Location = _
+
+        private var webcams = ArrayBuffer[String]()
 
         def setGeo(geo: Location): Builder = {
             this.geo = geo
@@ -32,7 +28,7 @@ object Preferences {
         }
 
         def build(): Preferences = {
-            Preferences(language, geo, webcams.toSeq)
+            Preferences(geo, webcams.toSeq)
         }
     }
 

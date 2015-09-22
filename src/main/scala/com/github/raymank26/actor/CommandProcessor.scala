@@ -35,16 +35,17 @@ private final class CommandProcessor extends Actor with ActorLogging with Utils 
             if (commands.contains(command)) {
                 commands(command)(msg)
             } else {
-                Telegram.sendMessage(s"Command isn't supported. Check $CommandHelp",
+                Telegram.sendMessage(MessageNotFound,
                     msg.from.chatId)
             }
             self ! PoisonPill
     }
 
+
     private def processStart(msg: TelegramMessage): Unit = {
         val from = sender()
         runAsFuture { () =>
-            Telegram.sendMessage("Hi. I'm telegram bot", msg.from.chatId)
+            Telegram.sendMessage(MessageHello, msg.from.chatId)
             from ! MessageDispatcher.WantSettings(msg.from.chatId)
         }
     }
@@ -68,11 +69,11 @@ private final class CommandProcessor extends Actor with ActorLogging with Utils 
     }
 
     private def preferencesRequired(chatId: Int): Unit = {
-        Telegram.sendMessage(s"I don't know you yet. Run $CommandSettings.", chatId)
+        Telegram.sendMessage(MessagePreferencesRequired, chatId)
     }
 
     private def processHelp(msg: TelegramMessage): Unit = {
-        Telegram.sendMessage(HelpMessage, msg.from.chatId)
+        Telegram.sendMessage(MessageHelp, msg.from.chatId)
     }
 }
 
@@ -85,7 +86,16 @@ private object CommandProcessor {
     private val CommandStart = "/start"
     private val CommandToday = "/today"
 
-    private val HelpMessage =
+    private val MessageHello =
+        """
+          |Hi, I'm telegram bot. I help you to see current forecast
+          |and nearest webcams based on your location. Let's define your settings.
+        """.replace('\n', ' ').stripMargin
+
+    private val MessagePreferencesRequired = s"I don't know you yet. Run $CommandSettings."
+    private val MessageNotFound = s"Command isn't supported. Check $CommandHelp"
+
+    private val MessageHelp =
     //@formatter:off
         s"""
           |I'm a forecast bot. The available commands are:

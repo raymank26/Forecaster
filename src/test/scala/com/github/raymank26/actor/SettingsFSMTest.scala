@@ -25,8 +25,6 @@ final class SettingsFSMTest extends AkkaSuite {
 
         override def requestWebcams(webcams: WebcamPreviewList): Unit = self ! RequestWebcams
 
-        override def requestLanguage(): Unit = self ! RequestLanguage
-
         override def requestAnotherWebcam(): Unit = self ! RequestAnotherWebcam
 
         override def sayRetry(state: SettingsState): Unit = self ! Retry(state)
@@ -61,9 +59,6 @@ final class SettingsFSMTest extends AkkaSuite {
         expectMsg(Hello)
         settingsRef ! createTelegramMessage(Location(10, 11))
 
-        expectMsg(RequestLanguage)
-        settingsRef ! createTelegramMessage(Text(SettingsFSM.TextRu))
-
         expectMsg(IsWebcamNeeded)
         settingsRef ! createTelegramMessage(Text(SettingsFSM.TextYes))
 
@@ -84,9 +79,6 @@ final class SettingsFSMTest extends AkkaSuite {
         expectMsg(Retry(SettingsFSM.OnProceed))
         settingsRef ! createTelegramMessage(Location(10, 11))
 
-        expectMsg(RequestLanguage)
-        settingsRef ! createTelegramMessage(Text(SettingsFSM.TextRu))
-
         expectMsg(IsWebcamNeeded)
         settingsRef ! createTelegramMessage(Text(SettingsFSM.TextYes))
 
@@ -106,9 +98,6 @@ final class SettingsFSMTest extends AkkaSuite {
 
         expectMsg(Retry(SettingsFSM.OnProceed))
         settingsRef ! createTelegramMessage(Location(10, 11))
-
-        expectMsg(RequestLanguage)
-        settingsRef ! createTelegramMessage(Text(SettingsFSM.TextRu))
 
         expectMsg(IsWebcamNeeded)
         settingsRef ! createTelegramMessage(Text(SettingsFSM.TextNo))
