@@ -5,7 +5,7 @@ import org.scalatest.{FunSuite, Matchers}
 import scala.io.Source
 
 /**
- * @author Anton Ermak (ermak@yamoney.ru).
+ * @author Anton Ermak
  */
 class Suite extends FunSuite with Matchers {
 

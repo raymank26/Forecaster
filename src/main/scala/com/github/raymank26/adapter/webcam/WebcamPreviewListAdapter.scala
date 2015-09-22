@@ -6,7 +6,7 @@ import spray.json.DefaultJsonProtocol._
 import spray.json.{JsArray, JsValue, RootJsonReader}
 
 /**
- * @author Anton Ermak (ermak@yamoney.ru).
+ * @author Anton Ermak
  */
 object WebcamPreviewListAdapter extends RootJsonReader[WebcamPreviewList] {
     override def read(json: JsValue): WebcamPreviewList = {

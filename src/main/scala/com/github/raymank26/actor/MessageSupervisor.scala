@@ -9,7 +9,7 @@ import akka.actor.{Actor, OneForOneStrategy, Props, SupervisorStrategy}
 /**
  * Supervisor proxy. Sends message back to user in case of unhandled exceptions.
  *
- * @author Anton Ermak (ermak@yamoney.ru).
+ * @author Anton Ermak
  */
 private final class MessageSupervisor(chatId: Int, props: Props) extends Actor {
 
@@ -21,7 +21,7 @@ private final class MessageSupervisor(chatId: Int, props: Props) extends Actor {
 
     override def supervisorStrategy: SupervisorStrategy = OneForOneStrategy() {
         case e: Exception =>
-            Telegram.sendMessage("Something went wrong", chatId)
+            Telegram.sendMessage("Something went wrong. Try me later \uD83D\uDE22", chatId)
             context.parent ! CloseForwarding(chatId)
             Stop
         case _ => Escalate

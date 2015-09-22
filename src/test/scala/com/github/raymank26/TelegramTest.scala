@@ -7,7 +7,7 @@ import spray.json.JsonParser
 
 
 /**
- * @author Anton Ermak (ermak@yamoney.ru).
+ * @author Anton Ermak
  */
 class TelegramTest extends Suite {
 

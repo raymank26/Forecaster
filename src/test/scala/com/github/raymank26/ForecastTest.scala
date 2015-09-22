@@ -6,7 +6,7 @@ import com.github.raymank26.model.forecast.{DataPoint, Weather}
 import spray.json._
 
 /**
- * @author Anton Ermak (ermak@yamoney.ru).
+ * @author Anton Ermak
  */
 class ForecastTest extends Suite {
 
