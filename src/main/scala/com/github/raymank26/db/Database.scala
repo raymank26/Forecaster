@@ -36,24 +36,27 @@ object Database extends PreferencesProvider {
      * @param chatId user's identifier
      */
     def deleteData(chatId: Int): Unit = {
+        //@formatter:off
         DB localTx { implicit session =>
             sql"""delete from $PreferencesTableName where user_id
-                 |= (select id from $UsersTableName where user_id = $chatId)"""
+                 |= (select id from $UsersTableName where chat_id = $chatId)"""
                 .stripMargin
                 .execute()
                 .apply()
-            sql"""delete from $UsersTableName where user_id = $chatId"""
+
+            sql"""delete from $UsersTableName where chat_id = $chatId"""
                 .execute()
                 .apply()
         }
+        //@formatter:on
     }
 
     private def getPreferencesByDbId(userId: Int): Option[(Int, Preferences)] = {
         DB readOnly { implicit session =>
             //@formatter:off
             sql"""select id, latitude, longitude, webcams_ids
-                 |from $PreferencesTableName where user_id = ?""".stripMargin
-                .bind(userId)
+                 |from $PreferencesTableName where user_id = $userId"""
+                .stripMargin
                 .map(rs => mapRsToForecast(rs))
                 .single()
                 .apply()
@@ -75,7 +78,7 @@ object Database extends PreferencesProvider {
 
     private def getUserDbId(chatId: Int): Option[Int] = {
         DB readOnly { implicit session =>
-            sql"""select id from $UsersTableName where user_id = $chatId"""
+            sql"""select id from $UsersTableName where chat_id = $chatId"""
                 .map(rs => rs.int("id"))
                 .single()
                 .apply()
@@ -89,7 +92,7 @@ object Database extends PreferencesProvider {
     private def saveUser(user: TelegramUser): Int = {
         DB localTx { implicit session =>
             //@formatter:off
-            sql"""insert into $UsersTableName (first_name, username, user_id)
+            sql"""insert into $UsersTableName (first_name, username, chat_id)
                   |values (${user.firstName}, ${user.username}, ${user.chatId})
                 """.stripMargin
                 .updateAndReturnGeneratedKey()
