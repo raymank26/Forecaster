@@ -122,7 +122,7 @@ private object SettingsFSMTest {
     }
 
     def createTelegramMessage(content: TelegramMessage.Content) = {
-        TelegramMessage(0, TelegramUser("antonermak", ChatId), new DateTime, content)
+        TelegramMessage(0, TelegramUser("anton", None, ChatId), new DateTime, content)
     }
 
     sealed trait ExpectedMessages

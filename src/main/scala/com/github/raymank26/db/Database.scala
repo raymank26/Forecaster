@@ -72,8 +72,8 @@ object Database extends PreferencesProvider {
     private def saveUser(user: TelegramUser): Int = {
         DB localTx { implicit session =>
             //@formatter:off
-            sql"""insert into $UsersTableName (username, user_id)
-                  |values (${user.username}, ${user.chatId})
+            sql"""insert into $UsersTableName (first_name, username, user_id)
+                  |values (${user.firstName}, ${user.username}, ${user.chatId})
                 """.stripMargin
                 .updateAndReturnGeneratedKey()
                 .apply()

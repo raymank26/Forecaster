@@ -13,9 +13,9 @@ import spray.json.{JsValue, RootJsonReader}
 object TelegramUserAdapter extends RootJsonReader[TelegramUser] {
     override def read(json: JsValue): TelegramUser = {
         TelegramUser(
-            username = json.asJsObject.fields("username").convertTo[String],
+            firstName = json.asJsObject.fields("first_name").convertTo[String],
+            username = json.asJsObject.fields.get("username").map(_.convertTo[String]),
             chatId = json.asJsObject.fields("id").convertTo[Int]
         )
-
     }
 }
