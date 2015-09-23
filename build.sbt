@@ -19,9 +19,9 @@ libraryDependencies ++= {
         "com.typesafe.akka" %% "akka-http-core-experimental"          % akkaStreamV,
         "com.typesafe.akka" %% "akka-http-experimental"               % akkaStreamV,
         "com.typesafe.akka" %% "akka-http-spray-json-experimental"    % akkaStreamV,
-        "com.typesafe.akka" %% "akka-http-testkit-experimental" % akkaStreamV % "test",
-        "com.typesafe.akka" %% "akka-testkit" % akkaStreamV % "test",
-        "org.scalatest"     %% "scalatest"                            % scalaTestV % "test",
+        "com.typesafe.akka" %% "akka-http-testkit-experimental"       % akkaStreamV % "test",
+        "com.typesafe.akka" %% "akka-testkit"                         % akkaStreamV % "test",
+        "org.scalatest"     %% "scalatest"                            % scalaTestV  % "test",
 
         "org.scalaj" %% "scalaj-http" % "1.1.5",
 
@@ -30,9 +30,7 @@ libraryDependencies ++= {
         "com.zaxxer" % "HikariCP" % "2.4.1",
 
         "ch.qos.logback" % "logback-classic" % "1.1.3",
-        "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
-
-        "org.scalatest" %% "scalatest" % "2.2.5" % "test"
+        "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0"
     )
 }
 
