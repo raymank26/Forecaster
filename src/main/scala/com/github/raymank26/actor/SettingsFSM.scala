@@ -294,7 +294,7 @@ private object SettingsFSM {
                 .:+(TextStop)
                 .grouped(len / 2)
                 .toSeq
-            webcamKeyboard = Keyboard(keyboardButtons, oneTimeKeyboard = true)
+            webcamKeyboard = Keyboard(keyboardButtons, oneTimeKeyboard = false)
         }
     }
 

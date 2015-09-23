@@ -8,16 +8,16 @@ forecaster {
     username: "dbuser",
   }
   forecast {
-    api-key: "api-key"
+    api-key: "api-key" // see https://forecast.io
   }
   telegram {
-    api-key: "bot-id"
+    api-key: "bot-id" // see https://core.telegram.org/bots/api
   }
   webcams {
-    api-key: "api-key"
+    api-key: "api-key" // see webcams.travel
   }
   host: "0.0.0.0"
-  port: 8090
+  port: 8090 // this port is used by docker's app container
 }
 
 akka {
