@@ -14,11 +14,13 @@ case class TelegramMessage(id: Int, from: TelegramUser, date: DateTime,
 
 object TelegramMessage {
 
-    trait Content
+    sealed trait Content
 
     case class Text(text: String) extends Content
 
     case class Location(latitude: Double, longitude: Double) extends Content
+
+    case object Unknown extends Content
 
 }
 

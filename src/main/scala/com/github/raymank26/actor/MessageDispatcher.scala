@@ -2,7 +2,7 @@ package com.github.raymank26.actor
 
 import com.github.raymank26.actor.MessageDispatcher.{SettingsSaved, WantSettings}
 import com.github.raymank26.controller.Telegram
-import com.github.raymank26.model.telegram.TelegramMessage
+import com.github.raymank26.model.telegram.{TelegramMessage, TelegramUser}
 
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
 
@@ -15,36 +15,36 @@ import scala.collection.mutable
  */
 private final class MessageDispatcher extends Actor with ActorLogging with Utils {
 
-    private val inSettings: mutable.Map[Int, ActorRef] = mutable.Map.empty[Int, ActorRef]
+    private val inSettings: mutable.Map[TelegramUser, ActorRef] =
+        mutable.Map.empty[TelegramUser, ActorRef]
 
     override def receive: Receive = {
 
-        case msg: TelegramMessage if inSettings.contains(msg.from.chatId) =>
-            inSettings(msg.from.chatId) ! msg
+        case msg: TelegramMessage if inSettings.contains(msg.from) =>
+            inSettings(msg.from) ! msg
 
-        case SettingsSaved(chatId) =>
-            inSettings.remove(chatId)
+        case SettingsSaved(user) =>
+            inSettings.remove(user)
 
         case msg: TelegramMessage => msg.content match {
             case txt: TelegramMessage.Text if txt.text.startsWith("/") =>
-                context.actorOf(MessageSupervisor.apply(msg.from.chatId,
-                    Props[CommandProcessor])) ! msg
+                context.actorOf(MessageSupervisor.apply(msg.from, Props[CommandProcessor])) ! msg
             case _ => unsupportedMessage(msg)
         }
 
-        case WantSettings(chatId) =>
-            inSettings(chatId) = context.actorOf(MessageSupervisor.apply(chatId,
-                SettingsFSM(chatId, self)))
+        case WantSettings(user) =>
+            inSettings(user) = context.actorOf(MessageSupervisor.apply(user,
+                SettingsFSM(user, self)))
 
-        case MessageSupervisor.CloseForwarding(chatId) =>
-            inSettings.remove(chatId)
+        case MessageSupervisor.CloseForwarding(telegramUser) =>
+            inSettings.remove(telegramUser)
 
         case msg => messageIsNotSupported(msg)
     }
 
     private def unsupportedMessage(msg: TelegramMessage): Unit = {
         log.warning(s"no such handler for $msg")
-        Telegram.sendMessage("I don't understand you", msg.from.chatId)
+        Telegram.sendNotUnderstand(msg.from)
     }
 }
 
@@ -60,8 +60,8 @@ object MessageDispatcher {
                 instance.get
         }
 
-    private[actor] case class WantSettings(chatId: Int)
+    private[actor] case class WantSettings(telegramUser: TelegramUser)
 
-    private[actor] case class SettingsSaved(chatId: Int)
+    private[actor] case class SettingsSaved(telegramUser: TelegramUser)
 
 }

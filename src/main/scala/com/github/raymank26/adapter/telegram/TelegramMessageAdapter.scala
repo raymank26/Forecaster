@@ -15,6 +15,7 @@ import spray.json.{JsValue, RootJsonReader}
 object TelegramMessageAdapter extends RootJsonReader[TelegramMessage] {
 
     private val MemberLocation = "location"
+    private val MemberText = "text"
 
     private implicit val telegramUserAdapter = TelegramUserAdapter
     private implicit val datetimeAdapter = DateTimeAdapter
@@ -35,8 +36,10 @@ object TelegramMessageAdapter extends RootJsonReader[TelegramMessage] {
                 location("latitude").convertTo[Double],
                 location("longitude").convertTo[Double]
             )
+        } else if (jsonObject.isDefinedAt(MemberText)) {
+            TelegramMessage.Text(jsonObject(MemberText).convertTo[String])
         } else {
-            TelegramMessage.Text(jsonObject("text").convertTo[String])
+            TelegramMessage.Unknown
         }
     }
 }

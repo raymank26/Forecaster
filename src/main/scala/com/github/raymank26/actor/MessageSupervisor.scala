@@ -2,6 +2,7 @@ package com.github.raymank26.actor
 
 import com.github.raymank26.actor.MessageSupervisor.CloseForwarding
 import com.github.raymank26.controller.Telegram
+import com.github.raymank26.model.telegram.TelegramUser
 
 import akka.actor.SupervisorStrategy.{Escalate, Stop}
 import akka.actor.{Actor, OneForOneStrategy, Props, SupervisorStrategy}
@@ -11,7 +12,7 @@ import akka.actor.{Actor, OneForOneStrategy, Props, SupervisorStrategy}
  *
  * @author Anton Ermak
  */
-private final class MessageSupervisor(chatId: Int, props: Props) extends Actor {
+private final class MessageSupervisor(telegramUser: TelegramUser, props: Props) extends Actor {
 
     val actor = context.actorOf(props)
 
@@ -21,8 +22,9 @@ private final class MessageSupervisor(chatId: Int, props: Props) extends Actor {
 
     override def supervisorStrategy: SupervisorStrategy = OneForOneStrategy() {
         case e: Exception =>
-            Telegram.sendMessage("Something went wrong. Try me later \uD83D\uDE22", chatId)
-            context.parent ! CloseForwarding(chatId)
+            Telegram.sendMessage("Something went wrong. Try me later \uD83D\uDE22",
+                telegramUser.chatId)
+            context.parent ! CloseForwarding(telegramUser)
             Stop
         case _ => Escalate
     }
@@ -30,9 +32,10 @@ private final class MessageSupervisor(chatId: Int, props: Props) extends Actor {
 
 private object MessageSupervisor {
 
-    def apply(chatId: Int, props: Props): Props = Props(classOf[MessageSupervisor], chatId, props)
+    def apply(user: TelegramUser, props: Props): Props =
+        Props(classOf[MessageSupervisor], user, props)
 
-    case class CloseForwarding(chatId: Int)
+    case class CloseForwarding(telegramUser: TelegramUser)
 
 }
 

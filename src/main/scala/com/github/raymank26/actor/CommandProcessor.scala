@@ -46,12 +46,12 @@ private final class CommandProcessor extends Actor with ActorLogging with Utils 
         val from = sender()
         runAsFuture { () =>
             Telegram.sendMessage(MessageHello, msg.from.chatId)
-            from ! MessageDispatcher.WantSettings(msg.from.chatId)
+            from ! MessageDispatcher.WantSettings(msg.from)
         }
     }
 
     private def processSettings(msg: TelegramMessage): Unit = {
-        sender() ! MessageDispatcher.WantSettings(msg.from.chatId)
+        sender() ! MessageDispatcher.WantSettings(msg.from)
     }
 
     private def processForecast(when: Period)(msg: TelegramMessage): Unit = {

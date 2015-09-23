@@ -19,7 +19,7 @@ import org.joda.time.DateTime
  */
 final class SettingsFSMTest extends AkkaSuite {
 
-    private val mockedConversation = new Conversation(ChatId) {
+    private val mockedConversation = new Conversation(User) {
 
         override def sayGoodbye(saved: Boolean): Unit = self ! SayGoodbye
 
@@ -66,7 +66,7 @@ final class SettingsFSMTest extends AkkaSuite {
         sendWebcams(settingsRef)
 
         expectMsg(SayGoodbye)
-        expectMsg(SettingsSaved(ChatId))
+        expectMsg(SettingsSaved(User))
     }
 
     test("mistaken workflow") {
@@ -86,7 +86,7 @@ final class SettingsFSMTest extends AkkaSuite {
         sendWebcams(settingsRef)
 
         expectMsg(SayGoodbye)
-        expectMsg(SettingsSaved(ChatId))
+        expectMsg(SettingsSaved(User))
     }
 
     test("no webcams needed workflow") {
@@ -103,14 +103,14 @@ final class SettingsFSMTest extends AkkaSuite {
         settingsRef ! createTelegramMessage(Text(SettingsFSM.TextNo))
 
         expectMsg(SayGoodbye)
-        expectMsg(SettingsSaved(ChatId))
+        expectMsg(SettingsSaved(User))
 
     }
 }
 
 private object SettingsFSMTest {
 
-    val ChatId = 55
+    val User = TelegramUser("anton", None, chatId = 55)
 
     val Webcams = 2
 
@@ -122,7 +122,7 @@ private object SettingsFSMTest {
     }
 
     def createTelegramMessage(content: TelegramMessage.Content) = {
-        TelegramMessage(0, TelegramUser("anton", None, ChatId), new DateTime, content)
+        TelegramMessage(0, User, new DateTime, content)
     }
 
     sealed trait ExpectedMessages

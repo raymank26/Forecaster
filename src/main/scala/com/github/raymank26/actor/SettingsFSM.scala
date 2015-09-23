@@ -164,7 +164,7 @@ private final class SettingsFSM(parent: ActorRef, conversation: Conversation,
     }
 
     private def selfStop(): State = {
-        parent ! SettingsSaved(conversation.chatId)
+        parent ! SettingsSaved(conversation.telegramUser)
         context.stop(self)
         stay()
     }
@@ -178,8 +178,8 @@ private object SettingsFSM {
     val TextYes = "Yes"
     val TextNo = "No"
 
-    def apply(chatId: Int, parent: ActorRef): Props = {
-        Props(classOf[SettingsFSM], parent, new Conversation(chatId),
+    def apply(user: TelegramUser, parent: ActorRef): Props = {
+        Props(classOf[SettingsFSM], parent, new Conversation(user),
             new WebcamProvider, Database)
     }
 
@@ -199,9 +199,11 @@ private object SettingsFSM {
     /**
      * Collection of available messages.
      *
-     * @param chatId interlocutor's id
+     * @param telegramUser interlocutor's id
      */
-    class Conversation(val chatId: Int) {
+    class Conversation(val telegramUser: TelegramUser) {
+
+        val chatId = telegramUser.chatId
 
         private var webcamKeyboard: Keyboard = _
 
@@ -240,7 +242,7 @@ private object SettingsFSM {
          * @param state current [[SettingsFSM]] state.
          */
         def sayRetry(state: SettingsState): Unit = {
-            Telegram.sendMessage("Sorry, I don't understand you", chatId)
+            Telegram.sendNotUnderstand(telegramUser)
         }
 
         /**

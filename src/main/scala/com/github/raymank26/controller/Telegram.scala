@@ -2,6 +2,7 @@ package com.github.raymank26.controller
 
 import com.github.raymank26.ConfigManager
 import com.github.raymank26.adapter.telegram.TelegramKeyboardAdapter
+import com.github.raymank26.model.telegram.TelegramUser
 import com.github.raymank26.model.webcam.WebcamPreviewList
 
 import spray.json._
@@ -41,6 +42,10 @@ object Telegram {
             .param(ReplyMarkup, replyKeyboard.toJson.compactPrint)
             .asString
             .body
+    }
+
+    def sendNotUnderstand(user: TelegramUser) = {
+        Telegram.sendMessage(s"${user.firstName }, I don't understand you", user.chatId)
     }
 
     def sendErrorInfo(chatId: Int): Unit = {
