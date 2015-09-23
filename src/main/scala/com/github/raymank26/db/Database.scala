@@ -30,6 +30,24 @@ object Database extends PreferencesProvider {
         saveOrUpdatePreferences(userId, prefs)
     }
 
+    /**
+     * Deletes saved preferences and user itself.
+     *
+     * @param chatId user's identifier
+     */
+    def deleteData(chatId: Int): Unit = {
+        DB localTx { implicit session =>
+            sql"""delete from $PreferencesTableName where user_id
+                 |= (select id from $UsersTableName where user_id = $chatId)"""
+                .stripMargin
+                .execute()
+                .apply()
+            sql"""delete from $UsersTableName where user_id = $chatId"""
+                .execute()
+                .apply()
+        }
+    }
+
     private def getPreferencesByDbId(userId: Int): Option[(Int, Preferences)] = {
         DB readOnly { implicit session =>
             //@formatter:off
@@ -57,8 +75,7 @@ object Database extends PreferencesProvider {
 
     private def getUserDbId(chatId: Int): Option[Int] = {
         DB readOnly { implicit session =>
-            sql"""select id from $UsersTableName where user_id = ?"""
-                .bind(chatId)
+            sql"""select id from $UsersTableName where user_id = $chatId"""
                 .map(rs => rs.int("id"))
                 .single()
                 .apply()

@@ -233,9 +233,8 @@ private object SettingsFSM {
          */
         def requestLocation(): Unit =
             Telegram.sendMessage(
-                """Ok, send me your location settings.
-                  |You can find this feature inside attachments tab.
-                """.stripMargin, chatId)
+                "Ok, send to me your location. You can find this feature inside attachments tab",
+                chatId)
 
         /**
          * Handler for mistaken input

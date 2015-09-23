@@ -25,7 +25,8 @@ private final class CommandProcessor extends Actor with ActorLogging with Utils 
         CommandToday -> processForecast(Today) _,
         CommandHelp -> processHelp _,
         CommandSettings -> processSettings _,
-        CommandStart -> processStart _
+        CommandStart -> processStart _,
+        CommandClear -> processClear _
     )
 
     override def receive: Receive = {
@@ -68,6 +69,11 @@ private final class CommandProcessor extends Actor with ActorLogging with Utils 
         }
     }
 
+    private def processClear(msg: TelegramMessage): Unit = {
+        Database.deleteData(msg.from.chatId)
+        Telegram.sendMessage(MessageCleared, msg.from.chatId)
+    }
+
     private def preferencesRequired(chatId: Int): Unit = {
         Telegram.sendMessage(MessagePreferencesRequired, chatId)
     }
@@ -85,15 +91,17 @@ private object CommandProcessor {
     private val CommandSettings = "/settings"
     private val CommandStart = "/start"
     private val CommandToday = "/today"
+    private val CommandClear = "/clear"
 
     private val MessageHello =
         """
           |Hi, I'm telegram bot. I help you to see current forecast
           |and nearest webcams based on your location. Let's define your settings.
-        """.replace('\n', ' ').stripMargin
+        """.stripMargin.replace('\n', ' ')
 
     private val MessagePreferencesRequired = s"I don't know you yet. Run $CommandSettings."
     private val MessageNotFound = s"Command isn't supported. Check $CommandHelp"
+    private val MessageCleared = s"Your settings is deleted. You can use $CommandSettings to define them again."
 
     private val MessageHelp =
     //@formatter:off
@@ -102,7 +110,8 @@ private object CommandProcessor {
           |1. $CommandHelp - this message
           |2. $CommandCurrent - current forecast
           |3. $CommandToday - 12 messages of forward forecast
-          |3. $CommandSettings - redefine settings
+          |4. $CommandSettings - redefine settings
+          |5. $CommandClear - delete settings
           |The author is @antonermak. Bot is powered by http://forecast.io and http://www.webcams.travel
         """.stripMargin
     //@formatter:on
